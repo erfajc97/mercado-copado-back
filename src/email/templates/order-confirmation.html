@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Orden Confirmada - Mercado Copado</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h1 style="color: #4CAF50;">¡Orden Confirmada!</h1>
+    <p>Hola {{name}},</p>
+    <p>Tu orden ha sido confirmada exitosamente.</p>
+    <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <p><strong>ID de Orden:</strong> {{orderId}}</p>
+      <p><strong>Total:</strong> ${{total}}</p>
+    </div>
+    <h3>Productos:</h3>
+    <pre style="background-color: #f4f4f4; padding: 15px; border-radius: 5px;">{{items}}</pre>
+    <p>Gracias por tu compra en Mercado Copado.</p>
+  </div>
+</body>
+</html>
+
