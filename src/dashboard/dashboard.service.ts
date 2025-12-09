@@ -24,6 +24,9 @@ export class DashboardService {
     // Obtener cantidad de productos
     const totalProducts = await this.prisma.product.count();
 
+    // Obtener cantidad de usuarios
+    const totalUsers = await this.prisma.user.count();
+
     // Obtener órdenes recientes (últimas 5)
     const recentOrders = await this.prisma.order.findMany({
       take: 5,
@@ -44,6 +47,7 @@ export class DashboardService {
       totalOrders,
       totalRevenue,
       totalProducts,
+      totalUsers,
       recentOrders,
     };
   }

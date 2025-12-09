@@ -23,4 +23,8 @@ export class RegisterUserDto {
   @IsString()
   @IsOptional()
   lastName?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
 }

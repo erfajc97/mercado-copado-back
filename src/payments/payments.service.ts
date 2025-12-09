@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreatePaymentTransactionDto } from './dto/create-payment-transaction.dto.js';
-import { PaymentStatus, OrderStatus } from '../generated/enums.js';
+import {
+  PaymentStatus,
+  OrderStatus,
+  PaymentProvider,
+} from '../generated/enums.js';
 import { OrdersService } from '../orders/orders.service.js';
 import { EmailService } from '../email/email.service.js';
 import type * as runtime from '@prisma/client/runtime/client';
@@ -23,50 +31,177 @@ export class PaymentsService {
     userId: string,
     createPaymentTransactionDto: CreatePaymentTransactionDto,
   ) {
-    // Verificar que la orden existe y pertenece al usuario
-    const order = await this.prisma.order.findFirst({
-      where: {
-        id: createPaymentTransactionDto.orderId,
-        userId,
-      },
-      include: {
-        user: true,
-        items: {
-          include: {
-            product: true,
-          },
+    // Si tiene orderId, usar el flujo antiguo
+    if (createPaymentTransactionDto.orderId) {
+      const order = await this.prisma.order.findFirst({
+        where: {
+          id: createPaymentTransactionDto.orderId,
+          userId,
         },
-      },
-    });
-
-    if (!order) {
-      throw new NotFoundException('Orden no encontrada');
-    }
-
-    // Crear la transacci?n de pago
-    const transaction = await this.prisma.paymentTransaction.create({
-      data: {
-        orderId: createPaymentTransactionDto.orderId,
-        userId,
-        clientTransactionId: createPaymentTransactionDto.clientTransactionId,
-        amount: order.total,
-        status: PaymentStatus.pending,
-      },
-      include: {
-        order: {
-          include: {
-            items: {
-              include: {
-                product: true,
-              },
+        include: {
+          user: true,
+          items: {
+            include: {
+              product: true,
             },
           },
         },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Orden no encontrada');
+      }
+
+      const transaction = await this.prisma.paymentTransaction.create({
+        data: {
+          orderId: createPaymentTransactionDto.orderId,
+          userId,
+          clientTransactionId: createPaymentTransactionDto.clientTransactionId,
+          amount: order.total,
+          status: PaymentStatus.pending,
+          paymentProvider: (createPaymentTransactionDto.paymentProvider ||
+            PaymentProvider.PAYPHONE) as any,
+        },
+        include: {
+          order: {
+            include: {
+              items: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+          user: true,
+        },
+      });
+
+      return transaction;
+    }
+
+    // Si no tiene orderId, usar el nuevo flujo
+    return this.createPaymentTransactionWithoutOrder(
+      userId,
+      createPaymentTransactionDto,
+    );
+  }
+
+  async createPaymentTransactionWithoutOrder(
+    userId: string,
+    createPaymentTransactionDto: CreatePaymentTransactionDto,
+  ) {
+    // Validar que tenga addressId y paymentMethodId
+    if (
+      !createPaymentTransactionDto.addressId ||
+      !createPaymentTransactionDto.paymentMethodId
+    ) {
+      throw new BadRequestException(
+        'addressId y paymentMethodId son requeridos',
+      );
+    }
+
+    // Verificar que la dirección existe y pertenece al usuario
+    const address = await this.prisma.address.findFirst({
+      where: {
+        id: createPaymentTransactionDto.addressId,
+        userId,
+      },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Dirección no encontrada');
+    }
+
+    // Calcular el total del carrito
+    const cartItems = await this.prisma.cartItem.findMany({
+      where: { userId },
+      include: { product: true },
+    });
+
+    if (cartItems.length === 0) {
+      throw new BadRequestException('El carrito está vacío');
+    }
+
+    let total = 0;
+    cartItems.forEach((item) => {
+      const price = Number(item.product.price);
+      const discount = Number(item.product.discount || 0);
+      const finalPrice = price * (1 - discount / 100);
+      total += finalPrice * item.quantity;
+    });
+
+    // Crear la transacción sin orden
+    const transaction = await this.prisma.paymentTransaction.create({
+      data: {
+        userId,
+        clientTransactionId: createPaymentTransactionDto.clientTransactionId,
+        amount: total,
+        status: PaymentStatus.pending,
+        paymentProvider: (createPaymentTransactionDto.paymentProvider ||
+          PaymentProvider.PAYPHONE) as any,
+        addressId: createPaymentTransactionDto.addressId || null,
+        paymentMethodId: createPaymentTransactionDto.paymentMethodId || null,
+      },
+      include: {
         user: true,
       },
     });
 
     return transaction;
+  }
+
+  async createOrderFromPaymentTransaction(clientTransactionId: string) {
+    const transaction = await this.prisma.paymentTransaction.findUnique({
+      where: { clientTransactionId },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transacción no encontrada');
+    }
+
+    if (!transaction.addressId || !transaction.paymentMethodId) {
+      throw new BadRequestException(
+        'La transacción no tiene addressId o paymentMethodId',
+      );
+    }
+
+    if (transaction.orderId) {
+      // Ya tiene orden, retornar la orden existente
+      return this.prisma.order.findUnique({
+        where: { id: transaction.orderId },
+        include: {
+          address: true,
+          items: {
+            include: {
+              product: {
+                include: {
+                  images: {
+                    orderBy: { order: 'asc' },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // Crear la orden usando el método del OrdersService
+    // transaction.addressId ya fue validado arriba, así que es string
+    const addressId: string = transaction.addressId;
+    const order = await this.ordersService.createFromPaymentTransaction(
+      transaction.userId,
+      addressId,
+    );
+
+    // Actualizar la transacción con el orderId
+    await this.prisma.paymentTransaction.update({
+      where: { clientTransactionId },
+      data: { orderId: order.id },
+    });
+
+    return order;
   }
 
   async getPaymentTransaction(clientTransactionId: string) {
@@ -190,22 +325,36 @@ export class PaymentsService {
       },
     });
 
-    // Si el pago se completó, actualizar el estado de la orden
-    // Flujo: created -> processing -> shipping -> delivered
+    // Si el pago se completó, crear la orden si no existe y actualizar el estado
     if (status === PaymentStatus.completed) {
-      // transaction.orderId is guaranteed to be non-null (required field in schema)
+      let order;
+
+      // Si no tiene orderId, crear la orden desde la transacción
       if (!transaction.orderId) {
+        order =
+          await this.createOrderFromPaymentTransaction(clientTransactionId);
+      } else {
+        order = await this.prisma.order.findUnique({
+          where: { id: transaction.orderId },
+          include: {
+            user: true,
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+      }
+
+      if (!order || !order.id) {
         return updatedTransaction;
       }
-      const currentOrder = await this.prisma.order.findUnique({
-        where: { id: transaction.orderId },
-      });
 
-      // Si la orden está en "created" o "pending", cambiar a "processing"
-      // Si ya está en "processing", cambiar a "shipping"
-      // Si ya está en "shipping", cambiar a "delivered"
+      // Actualizar el estado de la orden
+      // Flujo: created -> processing -> shipping -> delivered
       let newStatus: OrderStatus;
-      const currentStatus = currentOrder?.status;
+      const currentStatus = order.status;
       if (currentStatus === 'created' || currentStatus === 'pending') {
         newStatus = 'processing' as OrderStatus;
       } else if (currentStatus === 'processing') {
@@ -216,20 +365,21 @@ export class PaymentsService {
         newStatus = 'processing' as OrderStatus; // Default
       }
 
-      await this.ordersService.updateStatus(transaction.orderId, newStatus);
+      const orderId: string = String(order.id);
+      await this.ordersService.updateStatus(orderId, newStatus);
 
-      // Enviar email de confirmaci?n
+      // Enviar email de confirmación
       try {
-        const user = transaction.order.user;
-        const orderItems = transaction.order.items;
+        const user = order.user;
+        const orderItems = order.items;
 
         await this.emailService.sendEmail({
           to: user.email,
-          subject: '?Orden Confirmada! - Mercado Copado',
+          subject: '¡Orden Confirmada! - Mercado Copado',
           templateName: 'order-confirmation',
           replacements: {
             name: user.firstName,
-            orderId: transaction.orderId,
+            orderId: order.id,
             total: transaction.amount.toString(),
             items: orderItems
               .map(
@@ -273,40 +423,22 @@ export class PaymentsService {
 
   async processPhonePayment(
     userId: string,
-    orderId: string,
+    addressId: string,
+    paymentMethodId: string,
     phoneNumber: string,
     clientTransactionId: string,
   ) {
-    // Verificar que la orden existe y pertenece al usuario
-    const order = await this.prisma.order.findFirst({
+    // Verificar que la transacción existe y pertenece al usuario
+    const transaction = await this.prisma.paymentTransaction.findFirst({
       where: {
-        id: orderId,
-        userId,
-      },
-      include: {
-        user: true,
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-
-    if (!order) {
-      throw new NotFoundException('Orden no encontrada');
-    }
-
-    // Crear la transacción de pago primero
-    const transaction = await this.prisma.paymentTransaction.create({
-      data: {
-        orderId,
-        userId,
         clientTransactionId,
-        amount: order.total,
-        status: PaymentStatus.pending,
+        userId,
       },
     });
+
+    if (!transaction) {
+      throw new NotFoundException('Transacción no encontrada');
+    }
 
     // Llamar a la API de Payphone para procesar el pago por teléfono
     const payphoneToken = this.configService.get<string>('PAYPHONE_TOKEN');
@@ -329,36 +461,38 @@ export class PaymentsService {
     } = {
       clientTransactionId,
       phoneNumber,
-      reference: `Compra en Mercado Copado - Orden ${orderId.slice(0, 8)}`,
-      amount: Number(order.total) * 100, // Payphone espera el monto en centavos
-      amountWithoutTax: Number(order.total) * 100,
+      reference: `Compra en Mercado Copado - Transacción ${clientTransactionId.slice(0, 8)}`,
+      amount: Number(transaction.amount) * 100, // Payphone espera el monto en centavos
+      amountWithoutTax: Number(transaction.amount) * 100,
       storeId,
     };
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post<unknown>(payphoneUrl, payphoneData, {
-          headers: {
-            Authorization: `Bearer ${payphoneToken}`,
-            'Content-Type': 'application/json',
+        this.httpService.post<{ data: Record<string, unknown> }>(
+          payphoneUrl,
+          payphoneData,
+          {
+            headers: {
+              Authorization: `Bearer ${payphoneToken}`,
+              'Content-Type': 'application/json',
+            },
           },
-        }),
+        ),
       );
 
       // Actualizar la transacción con los datos de Payphone
+      const payphoneResponseData = response.data?.data || response.data || {};
       await this.prisma.paymentTransaction.update({
         where: { clientTransactionId },
         data: {
-          payphoneData: response.data as Record<
-            string,
-            unknown
-          > as runtime.InputJsonValue,
+          payphoneData: payphoneResponseData as runtime.InputJsonValue,
         },
       });
 
       return {
         transaction,
-        payphoneResponse: response.data,
+        payphoneResponse: payphoneResponseData,
       };
     } catch (error: unknown) {
       // Si falla la llamada a Payphone, marcar la transacción como fallida

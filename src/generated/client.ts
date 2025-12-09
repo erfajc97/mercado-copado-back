@@ -89,3 +89,8 @@ export type OrderItem = Prisma.OrderItemModel
  * 
  */
 export type PaymentTransaction = Prisma.PaymentTransactionModel
+/**
+ * Model PaymentMethod
+ * 
+ */
+export type PaymentMethod = Prisma.PaymentMethodModel

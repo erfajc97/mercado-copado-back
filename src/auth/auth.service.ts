@@ -127,7 +127,7 @@ export class AuthService {
   }
 
   async register(userDto: RegisterUserDto) {
-    const { email, password, firstName, lastName } = userDto;
+    const { email, password, firstName, lastName, country } = userDto;
 
     const foundUser = await this.prisma.user.findUnique({ where: { email } });
     if (foundUser) {
@@ -146,6 +146,7 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
+        country,
         role: UserRole.USER,
         verificationToken,
         verificationTokenExpiresAt,
@@ -192,7 +193,7 @@ export class AuthService {
   }
 
   async googleLogin(googleUser: GoogleUser) {
-    const { googleId, email, firstName, lastName } = googleUser;
+    const { googleId, email, firstName, lastName, country } = googleUser;
 
     let user = await this.prisma.user.findFirst({
       where: {
@@ -210,16 +211,28 @@ export class AuthService {
           lastName,
           role: UserRole.USER,
           isVerified: true, // Google ya verifica el email
+          country: country || 'Argentina', // Usar país detectado o Argentina por defecto
         },
       });
     } else if (!user.googleId) {
       // Actualizar usuario existente con googleId
+      const updateData: {
+        googleId: string;
+        isVerified: boolean;
+        country?: string;
+      } = {
+        googleId,
+        isVerified: true,
+      };
+
+      // Solo actualizar país si no tiene uno asignado
+      if (country && !user.country) {
+        updateData.country = country;
+      }
+
       user = await this.prisma.user.update({
         where: { id: user.id },
-        data: {
-          googleId,
-          isVerified: true,
-        },
+        data: updateData,
       });
     }
 

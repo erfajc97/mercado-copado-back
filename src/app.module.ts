@@ -13,6 +13,7 @@ import { CartModule } from './cart/cart.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { PaymentMethodsModule } from './payment-methods/payment-methods.module.js';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 
@@ -32,6 +33,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
     OrdersModule,
     PaymentsModule,
     DashboardModule,
+    PaymentMethodsModule,
   ],
   controllers: [],
   providers: [

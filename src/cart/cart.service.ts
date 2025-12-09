@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AddToCartDto } from './dto/add-to-cart.dto.js';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto.js';
+import { Prisma } from '../generated/client.js';
 
 @Injectable()
 export class CartService {
@@ -42,36 +43,74 @@ export class CartService {
 
     // Usar upsert para evitar condiciones de carrera y errores de restricción única
     // upsert es atómico: crea si no existe, actualiza si existen
-    return this.prisma.cartItem.upsert({
-      where: {
-        userId_productId: {
+    // Si falla por condición de carrera, intentamos actualizar directamente
+    try {
+      return await this.prisma.cartItem.upsert({
+        where: {
+          userId_productId: {
+            userId,
+            productId: addToCartDto.productId,
+          },
+        },
+        update: {
+          quantity: {
+            increment: addToCartDto.quantity,
+          },
+        },
+        create: {
           userId,
           productId: addToCartDto.productId,
+          quantity: addToCartDto.quantity,
         },
-      },
-      update: {
-        quantity: {
-          increment: addToCartDto.quantity,
-        },
-      },
-      create: {
-        userId,
-        productId: addToCartDto.productId,
-        quantity: addToCartDto.quantity,
-      },
-      include: {
-        product: {
-          include: {
-            images: {
-              orderBy: {
-                order: 'asc',
+        include: {
+          product: {
+            include: {
+              images: {
+                orderBy: {
+                  order: 'asc',
+                },
+                take: 1,
               },
-              take: 1,
             },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      // Si hay un error de restricción única (condición de carrera), intentar actualizar
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        // El item ya existe, actualizarlo directamente
+        return await this.prisma.cartItem.update({
+          where: {
+            userId_productId: {
+              userId,
+              productId: addToCartDto.productId,
+            },
+          },
+          data: {
+            quantity: {
+              increment: addToCartDto.quantity,
+            },
+          },
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    order: 'asc',
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+        });
+      }
+      // Si es otro tipo de error, relanzarlo
+      throw error;
+    }
   }
 
   async updateItem(

@@ -60,7 +60,8 @@ export const ModelName = {
   CartItem: 'CartItem',
   Order: 'Order',
   OrderItem: 'OrderItem',
-  PaymentTransaction: 'PaymentTransaction'
+  PaymentTransaction: 'PaymentTransaction',
+  PaymentMethod: 'PaymentMethod'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -85,6 +86,9 @@ export const UserScalarFieldEnum = {
   password: 'password',
   firstName: 'firstName',
   lastName: 'lastName',
+  phoneNumber: 'phoneNumber',
+  country: 'country',
+  documentId: 'documentId',
   role: 'role',
   googleId: 'googleId',
   isVerified: 'isVerified',
@@ -128,6 +132,8 @@ export const ProductScalarFieldEnum = {
   description: 'description',
   price: 'price',
   discount: 'discount',
+  country: 'country',
+  isActive: 'isActive',
   categoryId: 'categoryId',
   subcategoryId: 'subcategoryId',
   createdAt: 'createdAt',
@@ -209,12 +215,31 @@ export const PaymentTransactionScalarFieldEnum = {
   clientTransactionId: 'clientTransactionId',
   amount: 'amount',
   status: 'status',
+  paymentProvider: 'paymentProvider',
+  addressId: 'addressId',
+  paymentMethodId: 'paymentMethodId',
   payphoneData: 'payphoneData',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type PaymentTransactionScalarFieldEnum = (typeof PaymentTransactionScalarFieldEnum)[keyof typeof PaymentTransactionScalarFieldEnum]
+
+
+export const PaymentMethodScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  gatewayToken: 'gatewayToken',
+  cardBrand: 'cardBrand',
+  last4Digits: 'last4Digits',
+  expirationMonth: 'expirationMonth',
+  expirationYear: 'expirationYear',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodScalarFieldEnum = (typeof PaymentMethodScalarFieldEnum)[keyof typeof PaymentMethodScalarFieldEnum]
 
 
 export const SortOrder = {

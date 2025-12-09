@@ -30,6 +30,9 @@ export type UserMinAggregateOutputType = {
   password: string | null
   firstName: string | null
   lastName: string | null
+  phoneNumber: string | null
+  country: string | null
+  documentId: string | null
   role: $Enums.UserRole | null
   googleId: string | null
   isVerified: boolean | null
@@ -49,6 +52,9 @@ export type UserMaxAggregateOutputType = {
   password: string | null
   firstName: string | null
   lastName: string | null
+  phoneNumber: string | null
+  country: string | null
+  documentId: string | null
   role: $Enums.UserRole | null
   googleId: string | null
   isVerified: boolean | null
@@ -68,6 +74,9 @@ export type UserCountAggregateOutputType = {
   password: number
   firstName: number
   lastName: number
+  phoneNumber: number
+  country: number
+  documentId: number
   role: number
   googleId: number
   isVerified: number
@@ -89,6 +98,9 @@ export type UserMinAggregateInputType = {
   password?: true
   firstName?: true
   lastName?: true
+  phoneNumber?: true
+  country?: true
+  documentId?: true
   role?: true
   googleId?: true
   isVerified?: true
@@ -108,6 +120,9 @@ export type UserMaxAggregateInputType = {
   password?: true
   firstName?: true
   lastName?: true
+  phoneNumber?: true
+  country?: true
+  documentId?: true
   role?: true
   googleId?: true
   isVerified?: true
@@ -127,6 +142,9 @@ export type UserCountAggregateInputType = {
   password?: true
   firstName?: true
   lastName?: true
+  phoneNumber?: true
+  country?: true
+  documentId?: true
   role?: true
   googleId?: true
   isVerified?: true
@@ -219,6 +237,9 @@ export type UserGroupByOutputType = {
   password: string | null
   firstName: string
   lastName: string | null
+  phoneNumber: string | null
+  country: string | null
+  documentId: string | null
   role: $Enums.UserRole
   googleId: string | null
   isVerified: boolean
@@ -259,6 +280,9 @@ export type UserWhereInput = {
   password?: Prisma.StringNullableFilter<"User"> | string | null
   firstName?: Prisma.StringFilter<"User"> | string
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  country?: Prisma.StringNullableFilter<"User"> | string | null
+  documentId?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   googleId?: Prisma.StringNullableFilter<"User"> | string | null
   isVerified?: Prisma.BoolFilter<"User"> | boolean
@@ -274,6 +298,7 @@ export type UserWhereInput = {
   cartItems?: Prisma.CartItemListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   paymentTransactions?: Prisma.PaymentTransactionListRelationFilter
+  paymentMethods?: Prisma.PaymentMethodListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -282,6 +307,9 @@ export type UserOrderByWithRelationInput = {
   password?: Prisma.SortOrderInput | Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
+  documentId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   isVerified?: Prisma.SortOrder
@@ -297,11 +325,13 @@ export type UserOrderByWithRelationInput = {
   cartItems?: Prisma.CartItemOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
   paymentTransactions?: Prisma.PaymentTransactionOrderByRelationAggregateInput
+  paymentMethods?: Prisma.PaymentMethodOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  documentId?: string
   googleId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
@@ -309,6 +339,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.StringNullableFilter<"User"> | string | null
   firstName?: Prisma.StringFilter<"User"> | string
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  country?: Prisma.StringNullableFilter<"User"> | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   isVerified?: Prisma.BoolFilter<"User"> | boolean
   verificationToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -323,7 +355,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   cartItems?: Prisma.CartItemListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   paymentTransactions?: Prisma.PaymentTransactionListRelationFilter
-}, "id" | "email" | "googleId">
+  paymentMethods?: Prisma.PaymentMethodListRelationFilter
+}, "id" | "email" | "documentId" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -331,6 +364,9 @@ export type UserOrderByWithAggregationInput = {
   password?: Prisma.SortOrderInput | Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  country?: Prisma.SortOrderInput | Prisma.SortOrder
+  documentId?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
   googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   isVerified?: Prisma.SortOrder
@@ -356,6 +392,9 @@ export type UserScalarWhereWithAggregatesInput = {
   password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   firstName?: Prisma.StringWithAggregatesFilter<"User"> | string
   lastName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  country?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  documentId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   isVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -375,6 +414,9 @@ export type UserCreateInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -390,6 +432,7 @@ export type UserCreateInput = {
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -398,6 +441,9 @@ export type UserUncheckedCreateInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -413,6 +459,7 @@ export type UserUncheckedCreateInput = {
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -421,6 +468,9 @@ export type UserUpdateInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -436,6 +486,7 @@ export type UserUpdateInput = {
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -444,6 +495,9 @@ export type UserUncheckedUpdateInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -459,6 +513,7 @@ export type UserUncheckedUpdateInput = {
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -467,6 +522,9 @@ export type UserCreateManyInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -486,6 +544,9 @@ export type UserUpdateManyMutationInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -505,6 +566,9 @@ export type UserUncheckedUpdateManyInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -524,6 +588,9 @@ export type UserCountOrderByAggregateInput = {
   password?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  documentId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
@@ -543,6 +610,9 @@ export type UserMaxOrderByAggregateInput = {
   password?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  documentId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
@@ -562,6 +632,9 @@ export type UserMinOrderByAggregateInput = {
   password?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  country?: Prisma.SortOrder
+  documentId?: Prisma.SortOrder
   role?: Prisma.SortOrder
   googleId?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
@@ -660,12 +733,29 @@ export type UserUpdateOneRequiredWithoutPaymentTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentTransactionsInput, Prisma.UserUpdateWithoutPaymentTransactionsInput>, Prisma.UserUncheckedUpdateWithoutPaymentTransactionsInput>
 }
 
+export type UserCreateNestedOneWithoutPaymentMethodsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentMethodsInput, Prisma.UserUncheckedCreateWithoutPaymentMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPaymentMethodsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentMethodsInput, Prisma.UserUncheckedCreateWithoutPaymentMethodsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentMethodsInput
+  upsert?: Prisma.UserUpsertWithoutPaymentMethodsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentMethodsInput, Prisma.UserUpdateWithoutPaymentMethodsInput>, Prisma.UserUncheckedUpdateWithoutPaymentMethodsInput>
+}
+
 export type UserCreateWithoutAddressesInput = {
   id?: string
   email: string
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -680,6 +770,7 @@ export type UserCreateWithoutAddressesInput = {
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAddressesInput = {
@@ -688,6 +779,9 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -702,6 +796,7 @@ export type UserUncheckedCreateWithoutAddressesInput = {
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAddressesInput = {
@@ -726,6 +821,9 @@ export type UserUpdateWithoutAddressesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -740,6 +838,7 @@ export type UserUpdateWithoutAddressesInput = {
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAddressesInput = {
@@ -748,6 +847,9 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -762,6 +864,7 @@ export type UserUncheckedUpdateWithoutAddressesInput = {
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCartItemsInput = {
@@ -770,6 +873,9 @@ export type UserCreateWithoutCartItemsInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -784,6 +890,7 @@ export type UserCreateWithoutCartItemsInput = {
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCartItemsInput = {
@@ -792,6 +899,9 @@ export type UserUncheckedCreateWithoutCartItemsInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -806,6 +916,7 @@ export type UserUncheckedCreateWithoutCartItemsInput = {
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCartItemsInput = {
@@ -830,6 +941,9 @@ export type UserUpdateWithoutCartItemsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -844,6 +958,7 @@ export type UserUpdateWithoutCartItemsInput = {
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCartItemsInput = {
@@ -852,6 +967,9 @@ export type UserUncheckedUpdateWithoutCartItemsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -866,6 +984,7 @@ export type UserUncheckedUpdateWithoutCartItemsInput = {
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -874,6 +993,9 @@ export type UserCreateWithoutOrdersInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -888,6 +1010,7 @@ export type UserCreateWithoutOrdersInput = {
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -896,6 +1019,9 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -910,6 +1036,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -934,6 +1061,9 @@ export type UserUpdateWithoutOrdersInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -948,6 +1078,7 @@ export type UserUpdateWithoutOrdersInput = {
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -956,6 +1087,9 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -970,6 +1104,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   paymentTransactions?: Prisma.PaymentTransactionUncheckedUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentTransactionsInput = {
@@ -978,6 +1113,9 @@ export type UserCreateWithoutPaymentTransactionsInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -992,6 +1130,7 @@ export type UserCreateWithoutPaymentTransactionsInput = {
   addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentTransactionsInput = {
@@ -1000,6 +1139,9 @@ export type UserUncheckedCreateWithoutPaymentTransactionsInput = {
   password?: string | null
   firstName: string
   lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
   role?: $Enums.UserRole
   googleId?: string | null
   isVerified?: boolean
@@ -1014,6 +1156,7 @@ export type UserUncheckedCreateWithoutPaymentTransactionsInput = {
   addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
   cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentTransactionsInput = {
@@ -1038,6 +1181,9 @@ export type UserUpdateWithoutPaymentTransactionsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1052,6 +1198,7 @@ export type UserUpdateWithoutPaymentTransactionsInput = {
   addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentTransactionsInput = {
@@ -1060,6 +1207,9 @@ export type UserUncheckedUpdateWithoutPaymentTransactionsInput = {
   password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1074,6 +1224,127 @@ export type UserUncheckedUpdateWithoutPaymentTransactionsInput = {
   addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
   cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  paymentMethods?: Prisma.PaymentMethodUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPaymentMethodsInput = {
+  id?: string
+  email: string
+  password?: string | null
+  firstName: string
+  lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
+  role?: $Enums.UserRole
+  googleId?: string | null
+  isVerified?: boolean
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordTokenExpiresAt?: Date | string | null
+  resetPasswordRequestedAt?: Date | string | null
+  hashedRefreshToken?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  addresses?: Prisma.AddressCreateNestedManyWithoutUserInput
+  cartItems?: Prisma.CartItemCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  paymentTransactions?: Prisma.PaymentTransactionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPaymentMethodsInput = {
+  id?: string
+  email: string
+  password?: string | null
+  firstName: string
+  lastName?: string | null
+  phoneNumber?: string | null
+  country?: string | null
+  documentId?: string | null
+  role?: $Enums.UserRole
+  googleId?: string | null
+  isVerified?: boolean
+  verificationToken?: string | null
+  verificationTokenExpiresAt?: Date | string | null
+  resetPasswordToken?: string | null
+  resetPasswordTokenExpiresAt?: Date | string | null
+  resetPasswordRequestedAt?: Date | string | null
+  hashedRefreshToken?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  addresses?: Prisma.AddressUncheckedCreateNestedManyWithoutUserInput
+  cartItems?: Prisma.CartItemUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  paymentTransactions?: Prisma.PaymentTransactionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPaymentMethodsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentMethodsInput, Prisma.UserUncheckedCreateWithoutPaymentMethodsInput>
+}
+
+export type UserUpsertWithoutPaymentMethodsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPaymentMethodsInput, Prisma.UserUncheckedUpdateWithoutPaymentMethodsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentMethodsInput, Prisma.UserUncheckedCreateWithoutPaymentMethodsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPaymentMethodsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPaymentMethodsInput, Prisma.UserUncheckedUpdateWithoutPaymentMethodsInput>
+}
+
+export type UserUpdateWithoutPaymentMethodsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hashedRefreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  addresses?: Prisma.AddressUpdateManyWithoutUserNestedInput
+  cartItems?: Prisma.CartItemUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  paymentTransactions?: Prisma.PaymentTransactionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPaymentMethodsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  documentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetPasswordTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resetPasswordRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  hashedRefreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  addresses?: Prisma.AddressUncheckedUpdateManyWithoutUserNestedInput
+  cartItems?: Prisma.CartItemUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  paymentTransactions?: Prisma.PaymentTransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1086,6 +1357,7 @@ export type UserCountOutputType = {
   cartItems: number
   orders: number
   paymentTransactions: number
+  paymentMethods: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1093,6 +1365,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   cartItems?: boolean | UserCountOutputTypeCountCartItemsArgs
   orders?: boolean | UserCountOutputTypeCountOrdersArgs
   paymentTransactions?: boolean | UserCountOutputTypeCountPaymentTransactionsArgs
+  paymentMethods?: boolean | UserCountOutputTypeCountPaymentMethodsArgs
 }
 
 /**
@@ -1133,6 +1406,13 @@ export type UserCountOutputTypeCountPaymentTransactionsArgs<ExtArgs extends runt
   where?: Prisma.PaymentTransactionWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPaymentMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentMethodWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1140,6 +1420,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   password?: boolean
   firstName?: boolean
   lastName?: boolean
+  phoneNumber?: boolean
+  country?: boolean
+  documentId?: boolean
   role?: boolean
   googleId?: boolean
   isVerified?: boolean
@@ -1155,6 +1438,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   cartItems?: boolean | Prisma.User$cartItemsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   paymentTransactions?: boolean | Prisma.User$paymentTransactionsArgs<ExtArgs>
+  paymentMethods?: boolean | Prisma.User$paymentMethodsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1164,6 +1448,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   firstName?: boolean
   lastName?: boolean
+  phoneNumber?: boolean
+  country?: boolean
+  documentId?: boolean
   role?: boolean
   googleId?: boolean
   isVerified?: boolean
@@ -1183,6 +1470,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   password?: boolean
   firstName?: boolean
   lastName?: boolean
+  phoneNumber?: boolean
+  country?: boolean
+  documentId?: boolean
   role?: boolean
   googleId?: boolean
   isVerified?: boolean
@@ -1202,6 +1492,9 @@ export type UserSelectScalar = {
   password?: boolean
   firstName?: boolean
   lastName?: boolean
+  phoneNumber?: boolean
+  country?: boolean
+  documentId?: boolean
   role?: boolean
   googleId?: boolean
   isVerified?: boolean
@@ -1215,12 +1508,13 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "firstName" | "lastName" | "role" | "googleId" | "isVerified" | "verificationToken" | "verificationTokenExpiresAt" | "resetPasswordToken" | "resetPasswordTokenExpiresAt" | "resetPasswordRequestedAt" | "hashedRefreshToken" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "password" | "firstName" | "lastName" | "phoneNumber" | "country" | "documentId" | "role" | "googleId" | "isVerified" | "verificationToken" | "verificationTokenExpiresAt" | "resetPasswordToken" | "resetPasswordTokenExpiresAt" | "resetPasswordRequestedAt" | "hashedRefreshToken" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   addresses?: boolean | Prisma.User$addressesArgs<ExtArgs>
   cartItems?: boolean | Prisma.User$cartItemsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   paymentTransactions?: boolean | Prisma.User$paymentTransactionsArgs<ExtArgs>
+  paymentMethods?: boolean | Prisma.User$paymentMethodsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1233,6 +1527,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     cartItems: Prisma.$CartItemPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
     paymentTransactions: Prisma.$PaymentTransactionPayload<ExtArgs>[]
+    paymentMethods: Prisma.$PaymentMethodPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1240,6 +1535,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     password: string | null
     firstName: string
     lastName: string | null
+    phoneNumber: string | null
+    country: string | null
+    documentId: string | null
     role: $Enums.UserRole
     googleId: string | null
     isVerified: boolean
@@ -1649,6 +1947,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   cartItems<T extends Prisma.User$cartItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$cartItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CartItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   paymentTransactions<T extends Prisma.User$paymentTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  paymentMethods<T extends Prisma.User$paymentMethodsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentMethodsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentMethodPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1683,6 +1982,9 @@ export interface UserFieldRefs {
   readonly password: Prisma.FieldRef<"User", 'String'>
   readonly firstName: Prisma.FieldRef<"User", 'String'>
   readonly lastName: Prisma.FieldRef<"User", 'String'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly country: Prisma.FieldRef<"User", 'String'>
+  readonly documentId: Prisma.FieldRef<"User", 'String'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly isVerified: Prisma.FieldRef<"User", 'Boolean'>
@@ -2175,6 +2477,30 @@ export type User$paymentTransactionsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.PaymentTransactionScalarFieldEnum | Prisma.PaymentTransactionScalarFieldEnum[]
+}
+
+/**
+ * User.paymentMethods
+ */
+export type User$paymentMethodsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PaymentMethod
+   */
+  select?: Prisma.PaymentMethodSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PaymentMethod
+   */
+  omit?: Prisma.PaymentMethodOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentMethodInclude<ExtArgs> | null
+  where?: Prisma.PaymentMethodWhereInput
+  orderBy?: Prisma.PaymentMethodOrderByWithRelationInput | Prisma.PaymentMethodOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentMethodWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentMethodScalarFieldEnum | Prisma.PaymentMethodScalarFieldEnum[]
 }
 
 /**

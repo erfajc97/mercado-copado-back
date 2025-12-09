@@ -25,6 +25,7 @@ import type {
   AuthenticatedRequestWithRefreshToken,
   GoogleAuthRequest,
 } from '../interfaces/authenticated-user.interface.js';
+import * as geoip from 'geoip-lite';
 
 @Controller('auth')
 export class AuthController {
@@ -74,10 +75,67 @@ export class AuthController {
   @Public()
   @UseGuards(AuthGuard('google'))
   async googleAuthCallback(
-    @Req() req: GoogleAuthRequest,
+    @Req()
+    req: GoogleAuthRequest & {
+      ip?: string;
+      connection?: any;
+      headers?: any;
+      socket?: any;
+    },
     @Res({ passthrough: true }) response: Response,
   ) {
-    const googleUser = req.user;
+    // Detectar país por IP
+    let country = 'Argentina'; // Default a Argentina
+    try {
+      // Obtener IP del request
+      const ip =
+        req.ip ||
+        req.connection?.remoteAddress ||
+        req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+        req.socket?.remoteAddress;
+
+      if (ip && typeof ip === 'string') {
+        // Limpiar IP (remover ::ffff: si está presente)
+        const cleanIp = ip.replace('::ffff:', '').trim();
+        const geo = geoip.lookup(cleanIp);
+
+        if (geo && geo.country) {
+          // Convertir código de país a nombre completo
+          const countryNames: Record<string, string> = {
+            AR: 'Argentina',
+            EC: 'Ecuador',
+            SV: 'El Salvador',
+            GT: 'Guatemala',
+            HN: 'Honduras',
+            NI: 'Nicaragua',
+            CR: 'Costa Rica',
+            PA: 'Panamá',
+            MX: 'México',
+            US: 'Estados Unidos',
+            CA: 'Canadá',
+            CO: 'Colombia',
+            VE: 'Venezuela',
+            PE: 'Perú',
+            BO: 'Bolivia',
+            CL: 'Chile',
+            UY: 'Uruguay',
+            PY: 'Paraguay',
+            BR: 'Brasil',
+            DO: 'República Dominicana',
+            CU: 'Cuba',
+            PR: 'Puerto Rico',
+            ES: 'España',
+          };
+          country = countryNames[geo.country] || 'Argentina';
+        }
+      }
+    } catch (error) {
+      console.error('Error detectando país por IP:', error);
+      // Mantener default Argentina
+    }
+
+    // Agregar país detectado al googleUser
+    const googleUser = { ...req.user, country };
     const result = await this.authService.googleLogin(googleUser);
     response.cookie('refreshToken', result.data.refreshToken, {
       httpOnly: true,

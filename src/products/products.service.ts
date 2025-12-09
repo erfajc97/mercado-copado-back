@@ -56,6 +56,7 @@ export class ProductsService {
         description: createProductDto.description,
         price: createProductDto.price,
         discount: createProductDto.discount || 0,
+        country: createProductDto.country,
         categoryId: createProductDto.categoryId,
         subcategoryId: createProductDto.subcategoryId,
         images: {
@@ -218,12 +219,25 @@ export class ProductsService {
     const updatedProduct = await this.prisma.product.update({
       where: { id },
       data: {
-        name: updateProductDto.name,
-        description: updateProductDto.description,
-        price: updateProductDto.price,
-        discount: updateProductDto.discount,
-        categoryId: updateProductDto.categoryId,
-        subcategoryId: updateProductDto.subcategoryId,
+        ...(updateProductDto.name && { name: updateProductDto.name }),
+        ...(updateProductDto.description && {
+          description: updateProductDto.description,
+        }),
+        ...(updateProductDto.price !== undefined && {
+          price: updateProductDto.price,
+        }),
+        ...(updateProductDto.discount !== undefined && {
+          discount: updateProductDto.discount,
+        }),
+        ...(updateProductDto.categoryId && {
+          categoryId: updateProductDto.categoryId,
+        }),
+        ...(updateProductDto.subcategoryId && {
+          subcategoryId: updateProductDto.subcategoryId,
+        }),
+        ...(updateProductDto.isActive !== undefined && {
+          isActive: updateProductDto.isActive,
+        }),
         ...(newImageUrls.length > 0 && {
           images: {
             create: newImageUrls.map((url, index) => ({

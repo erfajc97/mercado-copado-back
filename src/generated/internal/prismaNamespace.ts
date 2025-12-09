@@ -393,7 +393,8 @@ export const ModelName = {
   CartItem: 'CartItem',
   Order: 'Order',
   OrderItem: 'OrderItem',
-  PaymentTransaction: 'PaymentTransaction'
+  PaymentTransaction: 'PaymentTransaction',
+  PaymentMethod: 'PaymentMethod'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "subcategory" | "product" | "productImage" | "address" | "cartItem" | "order" | "orderItem" | "paymentTransaction"
+    modelProps: "user" | "category" | "subcategory" | "product" | "productImage" | "address" | "cartItem" | "order" | "orderItem" | "paymentTransaction" | "paymentMethod"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1154,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PaymentMethod: {
+      payload: Prisma.$PaymentMethodPayload<ExtArgs>
+      fields: Prisma.PaymentMethodFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentMethodFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentMethodFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentMethodFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentMethodFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentMethodFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentMethodCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentMethodCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentMethodCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentMethodDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        update: {
+          args: Prisma.PaymentMethodUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentMethodDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentMethodUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentMethodUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentMethodUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentMethodPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentMethodAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentMethod>
+        }
+        groupBy: {
+          args: Prisma.PaymentMethodGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentMethodGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentMethodCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentMethodCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1198,6 +1273,9 @@ export const UserScalarFieldEnum = {
   password: 'password',
   firstName: 'firstName',
   lastName: 'lastName',
+  phoneNumber: 'phoneNumber',
+  country: 'country',
+  documentId: 'documentId',
   role: 'role',
   googleId: 'googleId',
   isVerified: 'isVerified',
@@ -1241,6 +1319,8 @@ export const ProductScalarFieldEnum = {
   description: 'description',
   price: 'price',
   discount: 'discount',
+  country: 'country',
+  isActive: 'isActive',
   categoryId: 'categoryId',
   subcategoryId: 'subcategoryId',
   createdAt: 'createdAt',
@@ -1322,12 +1402,31 @@ export const PaymentTransactionScalarFieldEnum = {
   clientTransactionId: 'clientTransactionId',
   amount: 'amount',
   status: 'status',
+  paymentProvider: 'paymentProvider',
+  addressId: 'addressId',
+  paymentMethodId: 'paymentMethodId',
   payphoneData: 'payphoneData',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type PaymentTransactionScalarFieldEnum = (typeof PaymentTransactionScalarFieldEnum)[keyof typeof PaymentTransactionScalarFieldEnum]
+
+
+export const PaymentMethodScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  gatewayToken: 'gatewayToken',
+  cardBrand: 'cardBrand',
+  last4Digits: 'last4Digits',
+  expirationMonth: 'expirationMonth',
+  expirationYear: 'expirationYear',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentMethodScalarFieldEnum = (typeof PaymentMethodScalarFieldEnum)[keyof typeof PaymentMethodScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1483,6 +1582,20 @@ export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'PaymentProvider'
+ */
+export type EnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentProvider[]'
+ */
+export type ListEnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider[]'>
+    
+
+
+/**
  * Reference to a field of type 'Json'
  */
 export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
@@ -1614,6 +1727,7 @@ export type GlobalOmitConfig = {
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
   paymentTransaction?: Prisma.PaymentTransactionOmit
+  paymentMethod?: Prisma.PaymentMethodOmit
 }
 
 /* Types for Logging */

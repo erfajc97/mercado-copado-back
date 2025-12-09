@@ -34,3 +34,12 @@ export const PaymentStatus = {
 } as const;
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
+
+export const PaymentProvider = {
+  PAYPHONE: 'PAYPHONE',
+  MERCADOPAGO: 'MERCADOPAGO',
+  CRYPTO: 'CRYPTO',
+} as const;
+
+export type PaymentProvider =
+  (typeof PaymentProvider)[keyof typeof PaymentProvider];

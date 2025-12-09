@@ -31,6 +31,18 @@ export class PaymentsController {
     );
   }
 
+  @Post('create-transaction-without-order')
+  @UseGuards(JwtAuthGuard)
+  async createPaymentTransactionWithoutOrder(
+    @CurrentUser() user: LoggedInUserData,
+    @Body() createPaymentTransactionDto: CreatePaymentTransactionDto,
+  ) {
+    return this.paymentsService.createPaymentTransactionWithoutOrder(
+      user.id,
+      createPaymentTransactionDto,
+    );
+  }
+
   @Get('transaction/:clientTransactionId')
   @Public()
   async getPaymentTransaction(
@@ -80,14 +92,16 @@ export class PaymentsController {
     @CurrentUser() user: LoggedInUserData,
     @Body()
     body: {
-      orderId: string;
+      addressId: string;
+      paymentMethodId: string;
       phoneNumber: string;
       clientTransactionId: string;
     },
   ) {
     return this.paymentsService.processPhonePayment(
       user.id,
-      body.orderId,
+      body.addressId,
+      body.paymentMethodId,
       body.phoneNumber,
       body.clientTransactionId,
     );

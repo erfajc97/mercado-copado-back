@@ -14,6 +14,7 @@ export type GoogleUser = {
   firstName: string;
   lastName: string;
   accessToken: string;
+  country?: string;
 };
 
 export interface AuthenticatedRequest extends Request {

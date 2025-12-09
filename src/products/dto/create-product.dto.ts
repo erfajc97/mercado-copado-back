@@ -4,6 +4,7 @@ import {
   IsUUID,
   IsNumber,
   IsOptional,
+  IsBoolean,
   Min,
 } from 'class-validator';
 
@@ -32,4 +33,12 @@ export class CreateProductDto {
   @IsUUID()
   @IsNotEmpty()
   subcategoryId: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }

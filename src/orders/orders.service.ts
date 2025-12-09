@@ -196,4 +196,80 @@ export class OrdersService {
       },
     });
   }
+
+  async createFromPaymentTransaction(userId: string, addressId: string) {
+    // Verificar que la dirección existe y pertenece al usuario
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Dirección no encontrada');
+    }
+
+    // Obtener items del carrito
+    const cartItems = await this.prisma.cartItem.findMany({
+      where: { userId },
+      include: {
+        product: true,
+      },
+    });
+
+    if (cartItems.length === 0) {
+      throw new BadRequestException('El carrito está vacío');
+    }
+
+    // Calcular el total
+    let total = 0;
+    const orderItems = cartItems.map((item) => {
+      const price = Number(item.product.price);
+      const discount = Number(item.product.discount || 0);
+      const finalPrice = price * (1 - discount / 100);
+      const itemTotal = finalPrice * item.quantity;
+      total += itemTotal;
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        price: finalPrice,
+      };
+    });
+
+    // Crear la orden con estado "processing" directamente (ya se pagó)
+    const order = await this.prisma.order.create({
+      data: {
+        userId,
+        addressId,
+        total,
+        status: OrderStatus.processing,
+        items: {
+          create: orderItems,
+        },
+      },
+      include: {
+        address: true,
+        items: {
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    order: 'asc',
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Limpiar el carrito
+    await this.prisma.cartItem.deleteMany({
+      where: { userId },
+    });
+
+    return order;
+  }
 }
