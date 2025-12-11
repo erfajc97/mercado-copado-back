@@ -7,6 +7,7 @@ import {
   IsBoolean,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
@@ -40,5 +41,11 @@ export class CreateProductDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return value;
+  })
   isActive?: boolean;
 }

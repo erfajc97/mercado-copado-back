@@ -72,15 +72,19 @@ export class ProductsService {
         images: true,
       },
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return product;
   }
 
-  findAll(categoryId?: string, subcategoryId?: string, search?: string) {
+  findAll(
+    categoryId?: string,
+    subcategoryId?: string,
+    search?: string,
+    includeInactive?: boolean,
+  ) {
     const where: {
       categoryId?: string;
       subcategoryId?: string;
+      isActive?: boolean;
       OR?: Array<
         | { name: { contains: string; mode: 'insensitive' } }
         | { description: { contains: string; mode: 'insensitive' } }
@@ -95,6 +99,11 @@ export class ProductsService {
       where.subcategoryId = subcategoryId;
     }
 
+    // Filtrar productos inactivos por defecto (solo mostrar activos)
+    if (!includeInactive) {
+      where.isActive = true;
+    }
+
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -102,7 +111,6 @@ export class ProductsService {
       ];
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.product.findMany({
       where,
       include: {
@@ -138,18 +146,17 @@ export class ProductsService {
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return product;
   }
 
   async findRelated(id: string, limit: number = 4) {
     const product = await this.findOne(id);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.product.findMany({
       where: {
         AND: [
           { id: { not: id } },
+          { isActive: true },
           {
             OR: [
               { categoryId: product.categoryId },
@@ -215,38 +222,58 @@ export class ProductsService {
       newImageUrls = await this.cloudinaryService.uploadMultipleImages(files);
     }
 
+    // Preparar los datos de actualización
+    const updateData: any = {};
+
+    if (updateProductDto.name) {
+      updateData.name = updateProductDto.name;
+    }
+    if (updateProductDto.description) {
+      updateData.description = updateProductDto.description;
+    }
+    if (updateProductDto.price !== undefined) {
+      updateData.price = updateProductDto.price;
+    }
+    if (updateProductDto.discount !== undefined) {
+      updateData.discount = updateProductDto.discount;
+    }
+    if (updateProductDto.categoryId) {
+      updateData.categoryId = updateProductDto.categoryId;
+    }
+    if (updateProductDto.subcategoryId) {
+      updateData.subcategoryId = updateProductDto.subcategoryId;
+    }
+    // Manejar isActive explícitamente - permitir false
+    if (updateProductDto.isActive !== undefined) {
+      // Convertir explícitamente a boolean
+      const isActiveValue: any = updateProductDto.isActive;
+      // Asegurar que false se convierta correctamente
+      if (isActiveValue === false) {
+        updateData.isActive = false;
+      } else if (typeof isActiveValue === 'string') {
+        const lowerValue = isActiveValue.toLowerCase().trim();
+        updateData.isActive = lowerValue === 'true' || lowerValue === '1';
+      } else if (typeof isActiveValue === 'number') {
+        updateData.isActive = isActiveValue !== 0;
+      } else {
+        updateData.isActive = Boolean(isActiveValue);
+      }
+    }
+
+    // Agregar imágenes si hay nuevas
+    if (newImageUrls.length > 0) {
+      updateData.images = {
+        create: newImageUrls.map((url, index) => ({
+          url,
+          order: product.images.length + index,
+        })),
+      };
+    }
+
     // Actualizar el producto
     const updatedProduct = await this.prisma.product.update({
       where: { id },
-      data: {
-        ...(updateProductDto.name && { name: updateProductDto.name }),
-        ...(updateProductDto.description && {
-          description: updateProductDto.description,
-        }),
-        ...(updateProductDto.price !== undefined && {
-          price: updateProductDto.price,
-        }),
-        ...(updateProductDto.discount !== undefined && {
-          discount: updateProductDto.discount,
-        }),
-        ...(updateProductDto.categoryId && {
-          categoryId: updateProductDto.categoryId,
-        }),
-        ...(updateProductDto.subcategoryId && {
-          subcategoryId: updateProductDto.subcategoryId,
-        }),
-        ...(updateProductDto.isActive !== undefined && {
-          isActive: updateProductDto.isActive,
-        }),
-        ...(newImageUrls.length > 0 && {
-          images: {
-            create: newImageUrls.map((url, index) => ({
-              url,
-              order: product.images.length + index,
-            })),
-          },
-        }),
-      },
+      data: updateData,
       include: {
         category: true,
         subcategory: true,
@@ -258,7 +285,6 @@ export class ProductsService {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return updatedProduct;
   }
 
@@ -283,7 +309,6 @@ export class ProductsService {
   async remove(id: string) {
     await this.findOne(id);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.product.delete({
       where: { id },
     });

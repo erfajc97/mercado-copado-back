@@ -38,9 +38,15 @@ export class ProductsController {
     @Query('categoryId') categoryId?: string,
     @Query('subcategoryId') subcategoryId?: string,
     @Query('search') search?: string,
+    @Query('includeInactive') includeInactive?: string,
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.productsService.findAll(categoryId, subcategoryId, search);
+    return this.productsService.findAll(
+      categoryId,
+      subcategoryId,
+      search,
+      includeInactive === 'true',
+    );
   }
 
   @Get('related/:id')
@@ -63,9 +69,22 @@ export class ProductsController {
   @UseInterceptors(FilesInterceptor('images', 10))
   update(
     @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
+    @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    // Parsear manualmente el body porque FormData puede no parsear correctamente los booleanos
+    const updateProductDto: UpdateProductDto = {
+      ...body,
+      // Convertir isActive explícitamente
+      isActive:
+        body.isActive !== undefined
+          ? body.isActive === true ||
+            body.isActive === 'true' ||
+            body.isActive === 1 ||
+            body.isActive === '1'
+          : undefined,
+    };
+
     return this.productsService.update(id, updateProductDto, files);
   }
 

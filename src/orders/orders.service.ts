@@ -197,7 +197,11 @@ export class OrdersService {
     });
   }
 
-  async createFromPaymentTransaction(userId: string, addressId: string) {
+  async createFromPaymentTransaction(
+    userId: string,
+    addressId: string,
+    initialStatus: OrderStatus = OrderStatus.created,
+  ) {
     // Verificar que la dirección existe y pertenece al usuario
     const address = await this.prisma.address.findFirst({
       where: { id: addressId, userId },
@@ -235,13 +239,13 @@ export class OrdersService {
       };
     });
 
-    // Crear la orden con estado "processing" directamente (ya se pagó)
+    // Crear la orden con el estado inicial especificado
     const order = await this.prisma.order.create({
       data: {
         userId,
         addressId,
         total,
-        status: OrderStatus.processing,
+        status: initialStatus,
         items: {
           create: orderItems,
         },

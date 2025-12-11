@@ -119,6 +119,7 @@ async function main() {
             'El último smartphone de Apple con chip A17 Pro y cámara de 48MP',
           price: 999.99,
           discount: 0,
+          country: 'Argentina',
           categoryId: categoriaElectronica.id,
           subcategoryId: categoriaElectronica.subcategories[0].id,
         },
@@ -127,6 +128,7 @@ async function main() {
           description: 'Smartphone Android con pantalla AMOLED de 6.2 pulgadas',
           price: 899.99,
           discount: 10,
+          country: 'Ecuador',
           categoryId: categoriaElectronica.id,
           subcategoryId: categoriaElectronica.subcategories[0].id,
         },
@@ -136,6 +138,7 @@ async function main() {
           description: 'Laptop profesional con chip M3 Pro y pantalla Retina',
           price: 2499.99,
           discount: 5,
+          country: 'Argentina',
           categoryId: categoriaElectronica.id,
           subcategoryId: categoriaElectronica.subcategories[1].id,
         },
@@ -144,6 +147,7 @@ async function main() {
           description: 'Laptop ultrabook con procesador Intel i7 y pantalla 4K',
           price: 1799.99,
           discount: 15,
+          country: 'Ecuador',
           categoryId: categoriaElectronica.id,
           subcategoryId: categoriaElectronica.subcategories[1].id,
         },
@@ -153,6 +157,7 @@ async function main() {
           description: 'Camisa de algodón 100% para ocasiones formales',
           price: 49.99,
           discount: 20,
+          country: 'Argentina',
           categoryId: categoriaRopa.id,
           subcategoryId: categoriaRopa.subcategories[0].id,
         },
@@ -161,6 +166,7 @@ async function main() {
           description: 'Pantalón jeans de corte clásico, cómodo y duradero',
           price: 79.99,
           discount: 0,
+          country: 'Ecuador',
           categoryId: categoriaRopa.id,
           subcategoryId: categoriaRopa.subcategories[0].id,
         },
@@ -170,6 +176,7 @@ async function main() {
           description: 'Vestido elegante perfecto para el día a día',
           price: 59.99,
           discount: 25,
+          country: 'Argentina',
           categoryId: categoriaRopa.id,
           subcategoryId: categoriaRopa.subcategories[1].id,
         },
@@ -179,6 +186,7 @@ async function main() {
           description: 'Sofá de 3 plazas con tapizado en tela gris',
           price: 599.99,
           discount: 30,
+          country: 'Ecuador',
           categoryId: categoriaHogar.id,
           subcategoryId: categoriaHogar.subcategories[0].id,
         },
@@ -187,6 +195,7 @@ async function main() {
           description: 'Mesa de centro de madera con diseño minimalista',
           price: 149.99,
           discount: 10,
+          country: 'Argentina',
           categoryId: categoriaHogar.id,
           subcategoryId: categoriaHogar.subcategories[0].id,
         },
@@ -196,6 +205,7 @@ async function main() {
           description: 'Set completo de ollas y sartenes antiadherentes',
           price: 199.99,
           discount: 20,
+          country: 'Ecuador',
           categoryId: categoriaHogar.id,
           subcategoryId: categoriaHogar.subcategories[2].id,
         },
@@ -218,6 +228,49 @@ async function main() {
     });
 
     console.log(`📦 Total de productos: ${products.length}`);
+
+    // Actualizar productos existentes que no tienen país asignado
+    const productsWithoutCountry = products.filter((p) => !p.country);
+    if (productsWithoutCountry.length > 0) {
+      console.log(
+        `🌍 Actualizando ${productsWithoutCountry.length} productos sin país...`,
+      );
+
+      // Mapeo de nombres de productos a países (basado en el seeder)
+      const countryMap: Record<string, string> = {
+        'iPhone 15 Pro': 'Argentina',
+        'Samsung Galaxy S24': 'Ecuador',
+        'MacBook Pro 16"': 'Argentina',
+        'Dell XPS 15': 'Ecuador',
+        'Camisa Formal Azul': 'Argentina',
+        'Jeans Clásicos': 'Ecuador',
+        'Vestido Casual': 'Argentina',
+        'Sofá Moderno': 'Ecuador',
+        'Mesa de Centro': 'Argentina',
+        'Set de Ollas Premium': 'Ecuador',
+      };
+
+      // Países disponibles para asignación aleatoria si no está en el mapa
+      const countries = ['Argentina', 'Ecuador'];
+
+      for (const product of productsWithoutCountry) {
+        // Intentar obtener el país del mapa, sino asignar uno aleatorio
+        const country =
+          countryMap[product.name] ||
+          countries[Math.floor(Math.random() * countries.length)];
+
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { country },
+        });
+
+        console.log(
+          `   ✅ Asignado país "${country}" a producto: ${product.name}`,
+        );
+      }
+
+      console.log('✅ Actualización de países completada');
+    }
 
     // Para cada producto, agregar imágenes si no tiene
     for (const product of products) {

@@ -15,6 +15,7 @@ import {
 } from '../generated/enums.js';
 import { OrdersService } from '../orders/orders.service.js';
 import { EmailService } from '../email/email.service.js';
+import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
 import type * as runtime from '@prisma/client/runtime/client';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class PaymentsService {
     private emailService: EmailService,
     private configService: ConfigService,
     private httpService: HttpService,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async createPaymentTransaction(
@@ -90,13 +92,19 @@ export class PaymentsService {
     userId: string,
     createPaymentTransactionDto: CreatePaymentTransactionDto,
   ) {
-    // Validar que tenga addressId y paymentMethodId
+    // Validar que tenga addressId
+    if (!createPaymentTransactionDto.addressId) {
+      throw new BadRequestException('addressId es requerido');
+    }
+
+    // Para proveedores que no son Payphone, paymentMethodId es requerido
     if (
-      !createPaymentTransactionDto.addressId ||
+      createPaymentTransactionDto.paymentProvider !==
+        PaymentProvider.PAYPHONE &&
       !createPaymentTransactionDto.paymentMethodId
     ) {
       throw new BadRequestException(
-        'addressId y paymentMethodId son requeridos',
+        'paymentMethodId es requerido para este proveedor de pago',
       );
     }
 
@@ -150,7 +158,10 @@ export class PaymentsService {
     return transaction;
   }
 
-  async createOrderFromPaymentTransaction(clientTransactionId: string) {
+  async createOrderFromPaymentTransaction(
+    clientTransactionId: string,
+    initialStatus: OrderStatus = OrderStatus.pending,
+  ) {
     const transaction = await this.prisma.paymentTransaction.findUnique({
       where: { clientTransactionId },
     });
@@ -159,10 +170,8 @@ export class PaymentsService {
       throw new NotFoundException('Transacción no encontrada');
     }
 
-    if (!transaction.addressId || !transaction.paymentMethodId) {
-      throw new BadRequestException(
-        'La transacción no tiene addressId o paymentMethodId',
-      );
+    if (!transaction.addressId) {
+      throw new BadRequestException('La transacción no tiene addressId');
     }
 
     if (transaction.orderId) {
@@ -193,6 +202,7 @@ export class PaymentsService {
     const order = await this.ordersService.createFromPaymentTransaction(
       transaction.userId,
       addressId,
+      initialStatus, // Estado inicial especificado (pending para links, processing para teléfono)
     );
 
     // Actualizar la transacción con el orderId
@@ -490,6 +500,33 @@ export class PaymentsService {
         },
       });
 
+      // Crear la orden en estado processing cuando se procesa el pago por teléfono
+      if (!transaction.orderId && transaction.addressId) {
+        const order = await this.ordersService.createFromPaymentTransaction(
+          transaction.userId,
+          transaction.addressId,
+          OrderStatus.processing, // Crear directamente en estado processing para pagos por teléfono
+        );
+
+        // Actualizar la transacción con el orderId
+        // El estado de la transacción permanece en pending hasta que se confirme el pago
+        await this.prisma.paymentTransaction.update({
+          where: { clientTransactionId },
+          data: {
+            orderId: order.id,
+            // Mantener el estado en pending hasta que Payphone confirme el pago
+            // status: PaymentStatus.pending (ya está en pending)
+          },
+        });
+
+        // Actualizar el estado de la orden a processing
+        await this.ordersService.updateStatus(
+          order.id,
+          OrderStatus.processing,
+          transaction.userId,
+        );
+      }
+
       return {
         transaction,
         payphoneResponse: payphoneResponseData,
@@ -509,5 +546,81 @@ export class PaymentsService {
           : 'Error al procesar el pago por teléfono',
       );
     }
+  }
+
+  async processCashDeposit(
+    userId: string,
+    addressId: string,
+    clientTransactionId: string,
+    depositImageFile: Express.Multer.File,
+  ) {
+    // Verificar que la dirección existe y pertenece al usuario
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Dirección no encontrada');
+    }
+
+    // Calcular el total del carrito
+    const cartItems = await this.prisma.cartItem.findMany({
+      where: { userId },
+      include: { product: true },
+    });
+
+    if (cartItems.length === 0) {
+      throw new BadRequestException('El carrito está vacío');
+    }
+
+    let total = 0;
+    cartItems.forEach((item) => {
+      const price = Number(item.product.price);
+      const discount = Number(item.product.discount || 0);
+      const finalPrice = price * (1 - discount / 100);
+      total += finalPrice * item.quantity;
+    });
+
+    // Subir la imagen del depósito a Cloudinary
+    const depositImageUrl = await this.cloudinaryService.uploadImage(
+      depositImageFile,
+    );
+
+    // Crear la transacción de pago
+    const transaction = await this.prisma.paymentTransaction.create({
+      data: {
+        userId,
+        clientTransactionId,
+        amount: total,
+        status: PaymentStatus.pending,
+        paymentProvider: PaymentProvider.CASH_DEPOSIT as any,
+        addressId,
+      },
+    });
+
+    // Crear la orden con estado paid_pending_review y la imagen del depósito
+    const order = await this.ordersService.createFromPaymentTransaction(
+      userId,
+      addressId,
+      OrderStatus.paid_pending_review,
+    );
+
+    // Actualizar la orden con la URL de la imagen del depósito
+    await this.prisma.order.update({
+      where: { id: order.id },
+      data: { depositImageUrl },
+    });
+
+    // Actualizar la transacción con el orderId
+    await this.prisma.paymentTransaction.update({
+      where: { clientTransactionId },
+      data: { orderId: order.id },
+    });
+
+    return {
+      transaction,
+      order,
+      depositImageUrl,
+    };
   }
 }

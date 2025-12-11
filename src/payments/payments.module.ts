@@ -5,9 +5,10 @@ import { PaymentsService } from './payments.service.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
 import { OrdersModule } from '../orders/orders.module.js';
 import { EmailModule } from '../email/email.module.js';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module.js';
 
 @Module({
-  imports: [PrismaModule, OrdersModule, EmailModule, HttpModule],
+  imports: [PrismaModule, OrdersModule, EmailModule, HttpModule, CloudinaryModule],
   controllers: [PaymentsController],
   providers: [PaymentsService],
   exports: [PaymentsService],

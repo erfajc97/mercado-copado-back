@@ -6,13 +6,17 @@ import {
   Body,
   Param,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { PaymentsService } from './payments.service.js';
 import { CreatePaymentTransactionDto } from './dto/create-payment-transaction.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { LoggedInUserData } from '../interfaces/authenticated-user.interface.js';
-import { PaymentStatus } from '../generated/enums.js';
+import { PaymentStatus, OrderStatus } from '../generated/enums.js';
 import { Public } from '../auth/decorators/public.decorator.js';
 
 @Controller('payments')
@@ -104,6 +108,46 @@ export class PaymentsController {
       body.paymentMethodId,
       body.phoneNumber,
       body.clientTransactionId,
+    );
+  }
+
+  @Post('create-order-from-transaction')
+  @UseGuards(JwtAuthGuard)
+  async createOrderFromTransaction(
+    @CurrentUser() user: LoggedInUserData,
+    @Body()
+    body: {
+      clientTransactionId: string;
+      initialStatus?: OrderStatus;
+    },
+  ) {
+    return this.paymentsService.createOrderFromPaymentTransaction(
+      body.clientTransactionId,
+      body.initialStatus || OrderStatus.pending,
+    );
+  }
+
+  @Post('cash-deposit')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('depositImage'))
+  async processCashDeposit(
+    @CurrentUser() user: LoggedInUserData,
+    @Body()
+    body: {
+      addressId: string;
+      clientTransactionId: string;
+    },
+    @UploadedFile() depositImageFile: Express.Multer.File,
+  ) {
+    if (!depositImageFile) {
+      throw new BadRequestException('La imagen del depósito es requerida');
+    }
+
+    return this.paymentsService.processCashDeposit(
+      user.id,
+      body.addressId,
+      body.clientTransactionId,
+      depositImageFile,
     );
   }
 }
