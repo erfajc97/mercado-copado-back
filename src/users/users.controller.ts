@@ -17,6 +17,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { LoggedInUserData } from '../interfaces/authenticated-user.interface.js';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto.js';
+import { UpdateUserAdminDto } from './dto/update-user-admin.dto.js';
 import { ChangePasswordDto } from '../auth/dto/change-password.dto.js';
 import { AdminUsersQueryDto } from './dto/admin-users-query.dto.js';
 import { UserRole } from '../generated/enums.js';
@@ -54,6 +55,16 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   findAllForAdmin(@Query() queryDto: AdminUsersQueryDto) {
     return this.usersService.findAllForAdmin(queryDto);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  updateUserByAdmin(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateUserAdminDto,
+  ) {
+    return this.usersService.updateUserByAdmin(id, updateDto);
   }
 
   @Delete(':id')

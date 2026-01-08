@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto.js';
+import { UpdateUserAdminDto } from './dto/update-user-admin.dto.js';
 import { ChangePasswordDto } from '../auth/dto/change-password.dto.js';
 import { AdminUsersQueryDto } from './dto/admin-users-query.dto.js';
 import * as bcrypt from 'bcrypt';
@@ -161,6 +162,80 @@ export class UsersService {
 
     return {
       message: 'Contraseña cambiada exitosamente',
+    };
+  }
+
+  async updateUserByAdmin(userId: string, updateDto: UpdateUserAdminDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con id ${userId} no encontrado`);
+    }
+
+    // Verificar si el email ya existe en otro usuario
+    if (updateDto.email && updateDto.email !== user.email) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: updateDto.email },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        throw new BadRequestException(
+          'El email ya está en uso por otro usuario',
+        );
+      }
+    }
+
+    // Verificar si el documentId ya existe en otro usuario
+    if (updateDto.documentId && updateDto.documentId !== user.documentId) {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { documentId: updateDto.documentId },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        throw new BadRequestException(
+          'El documento de identidad ya está en uso por otro usuario',
+        );
+      }
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(updateDto.firstName !== undefined && {
+          firstName: updateDto.firstName,
+        }),
+        ...(updateDto.lastName !== undefined && {
+          lastName: updateDto.lastName,
+        }),
+        ...(updateDto.email !== undefined && { email: updateDto.email }),
+        ...(updateDto.phoneNumber !== undefined && {
+          phoneNumber: updateDto.phoneNumber,
+        }),
+        ...(updateDto.country !== undefined && { country: updateDto.country }),
+        ...(updateDto.documentId !== undefined && {
+          documentId: updateDto.documentId,
+        }),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        country: true,
+        documentId: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return {
+      message: 'Usuario actualizado exitosamente',
+      data: updatedUser,
     };
   }
 

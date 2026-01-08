@@ -25,7 +25,7 @@ import type {
   AuthenticatedRequestWithRefreshToken,
   GoogleAuthRequest,
 } from '../interfaces/authenticated-user.interface.js';
-import * as geoip from 'geoip-lite';
+import geoip from 'geoip-lite';
 
 @Controller('auth')
 export class AuthController {

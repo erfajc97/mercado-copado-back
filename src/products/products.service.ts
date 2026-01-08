@@ -307,7 +307,18 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const product = await this.findOne(id);
+
+    // Verificar si el producto tiene órdenes relacionadas
+    const orderItemsCount = await this.prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (orderItemsCount > 0) {
+      throw new BadRequestException(
+        `No se puede eliminar el producto porque tiene ${orderItemsCount} ${orderItemsCount === 1 ? 'orden relacionada' : 'órdenes relacionadas'}. En su lugar, puedes desactivarlo usando el switch de estado.`,
+      );
+    }
 
     return this.prisma.product.delete({
       where: { id },
