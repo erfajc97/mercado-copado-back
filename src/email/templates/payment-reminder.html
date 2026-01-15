@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Recordatorio de Pago - Mercado Copado</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px">
+      <h1 style="color: #ff9800">Recordatorio de Pago</h1>
+      <p>Hola {{firstName}},</p>
+      <p>
+        Te recordamos que tienes una orden pendiente de pago en Mercado Copado.
+      </p>
+      <div
+        style="
+          background-color: #fff3cd;
+          padding: 15px;
+          border-radius: 5px;
+          margin: 20px 0;
+          border-left: 4px solid #ff9800;
+        "
+      >
+        <p><strong>ID de Orden:</strong> #{{orderId}}</p>
+        <p><strong>Total a Pagar:</strong> ${{total}} USD</p>
+        <p><strong>Días pendiente:</strong> {{dayNumber}} día(s)</p>
+      </div>
+      <p>
+        Por favor, completa el pago para que podamos procesar tu orden. Tus
+        productos te están esperando.
+      </p>
+      <div style="text-align: center; margin: 30px 0">
+        <a
+          href="{{paymentLink}}"
+          style="
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+          "
+        >
+          Pagar Ahora
+        </a>
+      </div>
+      <p style="color: #666; font-size: 14px">
+        Si ya realizaste el pago, por favor ignora este mensaje. Si tienes
+        alguna pregunta, no dudes en contactarnos.
+      </p>
+      <p>Gracias por elegir Mercado Copado.</p>
+    </div>
+  </body>
+</html>

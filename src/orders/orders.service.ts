@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrderStatus } from '../generated/enums.js';
+import { PayphoneProvider } from '../payments/providers/payphone.provider.js';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private payphoneProvider: PayphoneProvider,
+  ) {}
 
   async create(userId: string, createOrderDto: CreateOrderDto) {
     // Verificar que la dirección existe y pertenece al usuario
@@ -88,38 +92,62 @@ export class OrdersService {
     return order;
   }
 
-  findAll(userId?: string) {
+  async findAll(userId?: string, page: number = 1, limit: number = 10) {
     const where = userId ? { userId } : {};
+    const skip = (page - 1) * limit;
 
-    return this.prisma.order.findMany({
-      where,
-      include: {
-        address: true,
-        items: {
-          include: {
-            product: {
-              include: {
-                images: {
-                  orderBy: {
-                    order: 'asc',
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          address: true,
+          items: {
+            include: {
+              product: {
+                include: {
+                  images: {
+                    orderBy: {
+                      order: 'asc',
+                    },
+                    take: 1,
                   },
-                  take: 1,
                 },
               },
             },
           },
-        },
-        payments: {
-          orderBy: {
-            createdAt: 'desc',
+          payments: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
           },
-          take: 1,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      content: orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    };
   }
 
   async findOne(id: string, userId?: string) {
@@ -275,5 +303,113 @@ export class OrdersService {
     });
 
     return order;
+  }
+
+  async getPaymentLink(orderId: string, userId: string, isAdmin: boolean) {
+    // Buscar la orden
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        ...(isAdmin ? {} : { userId }), // Si es admin, puede ver cualquier orden
+      },
+      include: {
+        payments: {
+          where: {
+            paymentProvider: 'PAYPHONE',
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Orden no encontrada');
+    }
+
+    // Verificar que la orden está en estado pending
+    if (order.status !== 'pending') {
+      throw new BadRequestException(
+        'Solo las órdenes pendientes tienen link de pago disponible',
+      );
+    }
+
+    // Verificar que existe una transacción de pago
+    if (!order.payments || order.payments.length === 0) {
+      throw new NotFoundException(
+        'No se encontró transacción de pago para esta orden',
+      );
+    }
+
+    const payment = order.payments[0];
+    const payphoneData = payment.payphoneData as {
+      payWithCard?: string;
+    } | null;
+
+    // Si no existe el link o está vacío, generar uno nuevo
+    if (!payphoneData || !payphoneData.payWithCard) {
+      // Verificar que existe clientTransactionId
+      if (!payment.clientTransactionId) {
+        throw new BadRequestException(
+          'No se encontró clientTransactionId en la transacción de pago',
+        );
+      }
+
+      // Generar nuevo link de pago usando PayphoneProvider directamente
+      const amount = Number(order.total);
+      if (!amount || amount <= 0) {
+        throw new BadRequestException('El monto de la orden no es válido');
+      }
+
+      try {
+        const result = await this.payphoneProvider.processPayment(
+          amount,
+          payment.clientTransactionId,
+          {
+            reference: `Orden ${order.id}`,
+          },
+        );
+
+        if (!result || !result.redirectUrl) {
+          throw new BadRequestException(
+            'No se pudo generar el link de pago. La respuesta del proveedor no contiene redirectUrl',
+          );
+        }
+
+        // Actualizar el payment con el nuevo link
+        await this.prisma.paymentTransaction.update({
+          where: { id: payment.id },
+          data: {
+            payphoneData: {
+              ...(payphoneData || {}),
+              payWithCard: result.redirectUrl,
+              paymentId: result.paymentId,
+              ...(result.paymentData || {}),
+            },
+          },
+        });
+
+        return {
+          paymentLink: result.redirectUrl,
+          orderId: order.id,
+          total: order.total,
+        };
+      } catch (error: unknown) {
+        console.error('Error al generar link de pago:', error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Error al generar el link de pago';
+        throw new BadRequestException(errorMessage);
+      }
+    }
+
+    return {
+      paymentLink: payphoneData.payWithCard,
+      orderId: order.id,
+      total: order.total,
+    };
   }
 }

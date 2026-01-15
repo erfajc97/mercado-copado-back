@@ -75,4 +75,36 @@ export class EmailService {
       throw new Error(`Failed to send email: ${errorMessage}`);
     }
   }
+
+  async sendPaymentReminderEmail({
+    to,
+    firstName,
+    orderId,
+    total,
+    paymentLink,
+    dayNumber,
+  }: {
+    to: string;
+    firstName: string;
+    orderId: string;
+    total: string;
+    paymentLink: string;
+    dayNumber: number;
+  }) {
+    const subject = `Recordatorio de Pago - Orden #${orderId.slice(0, 8)}`;
+    const replacements = {
+      firstName,
+      orderId: orderId.slice(0, 8),
+      total,
+      paymentLink,
+      dayNumber: dayNumber.toString(),
+    };
+
+    return this.sendEmail({
+      to,
+      subject,
+      templateName: 'payment-reminder',
+      replacements,
+    });
+  }
 }

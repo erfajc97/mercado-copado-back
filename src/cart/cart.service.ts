@@ -32,6 +32,15 @@ export class CartService {
   }
 
   async addToCart(userId: string, addToCartDto: AddToCartDto) {
+    // Verificar que el usuario existe
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
     // Verificar que el producto existe
     const product = await this.prisma.product.findUnique({
       where: { id: addToCartDto.productId },
@@ -107,6 +116,15 @@ export class CartService {
             },
           },
         });
+      }
+      // Si hay un error de clave foránea (usuario no existe), lanzar error más claro
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new NotFoundException(
+          'Usuario no encontrado. Por favor, inicia sesión nuevamente.',
+        );
       }
       // Si es otro tipo de error, relanzarlo
       throw error;

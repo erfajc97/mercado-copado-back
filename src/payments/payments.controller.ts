@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { LoggedInUserData } from '../interfaces/authenticated-user.interface.js';
 import { PaymentStatus, OrderStatus } from '../generated/enums.js';
+import { PaymentProvider } from '../generated/enums.js';
 import { Public } from '../auth/decorators/public.decorator.js';
 
 @Controller('payments')
@@ -42,6 +43,18 @@ export class PaymentsController {
     @Body() createPaymentTransactionDto: CreatePaymentTransactionDto,
   ) {
     return this.paymentsService.createPaymentTransactionWithoutOrder(
+      user.id,
+      createPaymentTransactionDto,
+    );
+  }
+
+  @Post('create-transaction-and-order')
+  @UseGuards(JwtAuthGuard)
+  async createTransactionAndOrder(
+    @CurrentUser() user: LoggedInUserData,
+    @Body() createPaymentTransactionDto: CreatePaymentTransactionDto,
+  ) {
+    return this.paymentsService.createTransactionAndOrder(
       user.id,
       createPaymentTransactionDto,
     );
@@ -97,17 +110,19 @@ export class PaymentsController {
     @Body()
     body: {
       addressId: string;
-      paymentMethodId: string;
+      paymentMethodId?: string; // Opcional para PAYPHONE
       phoneNumber: string;
       clientTransactionId: string;
+      payphoneResponse?: Record<string, unknown>; // Respuesta de Payphone desde el frontend
     },
   ) {
     return this.paymentsService.processPhonePayment(
       user.id,
       body.addressId,
-      body.paymentMethodId,
+      body.paymentMethodId || undefined, // Solo pasar si existe y no es vacío
       body.phoneNumber,
       body.clientTransactionId,
+      body.payphoneResponse,
     );
   }
 
@@ -136,6 +151,7 @@ export class PaymentsController {
     body: {
       addressId: string;
       clientTransactionId: string;
+      orderId?: string; // Para retry de pagos en órdenes existentes
     },
     @UploadedFile() depositImageFile: Express.Multer.File,
   ) {
@@ -148,6 +164,43 @@ export class PaymentsController {
       body.addressId,
       body.clientTransactionId,
       depositImageFile,
+      body.orderId, // Pasar orderId si existe
+    );
+  }
+
+  @Post('regenerate-transaction')
+  @UseGuards(JwtAuthGuard)
+  async regenerateTransaction(
+    @CurrentUser() user: LoggedInUserData,
+    @Body()
+    body: {
+      orderId: string;
+      paymentProvider?: PaymentProvider;
+      paymentMethodId?: string;
+      payphoneData?: Record<string, unknown>;
+    },
+  ) {
+    return await this.paymentsService.regenerateTransactionForOrder(
+      body.orderId,
+      user.id,
+      body.paymentProvider || PaymentProvider.PAYPHONE,
+      body.paymentMethodId,
+      body.payphoneData,
+    );
+  }
+
+  @Post('verify-multiple-transactions')
+  @UseGuards(JwtAuthGuard)
+  async verifyMultipleTransactions(
+    @CurrentUser() user: LoggedInUserData,
+    @Body()
+    body: {
+      clientTransactionIds: string[];
+    },
+  ) {
+    return await this.paymentsService.verifyMultipleTransactions(
+      body.clientTransactionIds,
+      user.id,
     );
   }
 }

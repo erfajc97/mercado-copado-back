@@ -14,6 +14,7 @@ import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { PaymentMethodsModule } from './payment-methods/payment-methods.module.js';
+import { OrdersSchedulerModule } from './orders/orders-scheduler.module.js';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
 
@@ -34,6 +35,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard.js';
     PaymentsModule,
     DashboardModule,
     PaymentMethodsModule,
+    OrdersSchedulerModule,
   ],
   controllers: [],
   providers: [
