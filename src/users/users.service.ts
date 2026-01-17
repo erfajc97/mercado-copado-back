@@ -270,10 +270,13 @@ export class UsersService {
       where.country = queryDto.country;
     }
 
+    // Construir el objeto where solo si tiene propiedades
+    const whereClause = Object.keys(where).length > 0 ? where : undefined;
+
     // Obtener usuarios con agregaciones
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
-        where,
+        ...(whereClause && { where: whereClause }),
         skip,
         take: limit,
         select: {
@@ -297,7 +300,9 @@ export class UsersService {
           createdAt: 'desc',
         },
       }),
-      this.prisma.user.count({ where }),
+      this.prisma.user.count({
+        ...(whereClause && { where: whereClause }),
+      }),
     ]);
 
     // Calcular agregaciones para cada usuario
@@ -346,7 +351,7 @@ export class UsersService {
     return {
       message: 'Usuarios obtenidos exitosamente',
       data: {
-        users: usersWithStats,
+        content: usersWithStats,
         pagination: {
           page,
           limit,

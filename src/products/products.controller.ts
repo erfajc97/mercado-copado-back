@@ -39,13 +39,19 @@ export class ProductsController {
     @Query('subcategoryId') subcategoryId?: string,
     @Query('search') search?: string,
     @Query('includeInactive') includeInactive?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
+    const pageNumber = page ? parseInt(page, 10) : undefined;
+    const limitNumber = limit ? parseInt(limit, 10) : undefined;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.productsService.findAll(
       categoryId,
       subcategoryId,
       search,
       includeInactive === 'true',
+      pageNumber,
+      limitNumber,
     );
   }
 

@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { UpdateProductDto } from './dto/update-product.dto.js';
 import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
+import { createPaginationResponse } from '../common/helpers/pagination.helper.js';
 
 @Injectable()
 export class ProductsService {
@@ -75,11 +76,13 @@ export class ProductsService {
     return product;
   }
 
-  findAll(
+  async findAll(
     categoryId?: string,
     subcategoryId?: string,
     search?: string,
     includeInactive?: boolean,
+    page?: number,
+    limit?: number,
   ) {
     const where: {
       categoryId?: string;
@@ -111,21 +114,57 @@ export class ProductsService {
       ];
     }
 
-    return this.prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        subcategory: true,
-        images: {
-          orderBy: {
-            order: 'asc',
+    // Construir el objeto where solo si tiene propiedades
+    const whereClause = Object.keys(where).length > 0 ? where : undefined;
+
+    // Si no se especifica paginación, retornar todos los productos (comportamiento anterior)
+    if (page === undefined || limit === undefined) {
+      return this.prisma.product.findMany({
+        ...(whereClause && { where: whereClause }),
+        include: {
+          category: true,
+          subcategory: true,
+          images: {
+            orderBy: {
+              order: 'asc',
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    }
+
+    // Con paginación
+    const pageNumber = page || 1;
+    const limitNumber = limit || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        ...(whereClause && { where: whereClause }),
+        include: {
+          category: true,
+          subcategory: true,
+          images: {
+            orderBy: {
+              order: 'asc',
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limitNumber,
+      }),
+      this.prisma.product.count({
+        ...(whereClause && { where: whereClause }),
+      }),
+    ]);
+
+    return createPaginationResponse(products, total, pageNumber, limitNumber);
   }
 
   async findOne(id: string) {

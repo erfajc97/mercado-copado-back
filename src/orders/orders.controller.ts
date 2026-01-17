@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
+import { OrdersQueryDto } from './dto/orders-query.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { AdminGuard } from '../auth/guards/admin.guard.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
@@ -33,20 +34,31 @@ export class OrdersController {
   @Get('my-orders')
   findMyOrders(
     @CurrentUser() user: LoggedInUserData,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query() queryDto: OrdersQueryDto,
   ) {
-    const pageNumber = page ? parseInt(page, 10) : 1;
-    const limitNumber = limit ? parseInt(limit, 10) : 10;
-    return this.ordersService.findAll(user.id, pageNumber, limitNumber);
+    const pageNumber = queryDto.page || 1;
+    const limitNumber = queryDto.limit || 10;
+    return this.ordersService.findAll(
+      user.id,
+      pageNumber,
+      limitNumber,
+      queryDto.search,
+      queryDto.status,
+    );
   }
 
   @Get()
   @UseGuards(AdminGuard)
-  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
-    const pageNumber = page ? parseInt(page, 10) : 1;
-    const limitNumber = limit ? parseInt(limit, 10) : 10;
-    return this.ordersService.findAll(undefined, pageNumber, limitNumber);
+  findAll(@Query() queryDto: OrdersQueryDto) {
+    const pageNumber = queryDto.page || 1;
+    const limitNumber = queryDto.limit || 10;
+    return this.ordersService.findAll(
+      undefined,
+      pageNumber,
+      limitNumber,
+      queryDto.search,
+      queryDto.status,
+    );
   }
 
   @Get(':id')

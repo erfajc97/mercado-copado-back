@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
@@ -26,9 +27,15 @@ export class CategoriesController {
 
   @Get()
   @Public()
-  findAll() {
+  findAll(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNumber = page ? parseInt(page, 10) : undefined;
+    const limitNumber = limit ? parseInt(limit, 10) : undefined;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.categoriesService.findAll();
+    return this.categoriesService.findAll(search, pageNumber, limitNumber);
   }
 
   @Get(':id')

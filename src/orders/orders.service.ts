@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrderStatus } from '../generated/enums.js';
 import { PayphoneProvider } from '../payments/providers/payphone.provider.js';
+import { createPaginationResponse } from '../common/helpers/pagination.helper.js';
 
 @Injectable()
 export class OrdersService {
@@ -92,13 +93,45 @@ export class OrdersService {
     return order;
   }
 
-  async findAll(userId?: string, page: number = 1, limit: number = 10) {
-    const where = userId ? { userId } : {};
+  async findAll(
+    userId?: string,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+    status?: OrderStatus,
+  ) {
+    const where: {
+      userId?: string;
+      status?: OrderStatus;
+      OR?: Array<{
+        id?: { contains: string; mode: 'insensitive' };
+        user?: { email?: { contains: string; mode: 'insensitive' } };
+      }>;
+    } = {};
+
+    if (userId) {
+      where.userId = userId;
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { id: { contains: search, mode: 'insensitive' } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    // Construir el objeto where solo si tiene propiedades
+    const whereClause = Object.keys(where).length > 0 ? where : undefined;
+
     const skip = (page - 1) * limit;
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
-        where,
+        ...(whereClause && { where: whereClause }),
         include: {
           user: {
             select: {
@@ -136,18 +169,12 @@ export class OrdersService {
         skip,
         take: limit,
       }),
-      this.prisma.order.count({ where }),
+      this.prisma.order.count({
+        ...(whereClause && { where: whereClause }),
+      }),
     ]);
 
-    return {
-      content: orders,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return createPaginationResponse(orders, total, page, limit);
   }
 
   async findOne(id: string, userId?: string) {

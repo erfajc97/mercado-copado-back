@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
+import { createPaginationResponse } from '../common/helpers/pagination.helper.js';
 
 @Injectable()
 export class CategoriesService {
@@ -26,21 +27,77 @@ export class CategoriesService {
     });
   }
 
-  findAll() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.prisma.category.findMany({
-      include: {
-        subcategories: true,
-        _count: {
-          select: {
-            products: true,
+  async findAll(search?: string, page?: number, limit?: number) {
+    const where: {
+      name?: { contains: string; mode: 'insensitive' };
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' };
+        subcategories?: {
+          some: { name: { contains: string; mode: 'insensitive' } };
+        };
+      }>;
+    } = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        {
+          subcategories: {
+            some: { name: { contains: search, mode: 'insensitive' } },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+      ];
+    }
+
+    // Construir el objeto where solo si tiene propiedades, o usar undefined
+    const whereClause = Object.keys(where).length > 0 ? where : undefined;
+
+    // Si no se especifica paginación, retornar todas las categorías (comportamiento anterior)
+    if (page === undefined || limit === undefined) {
+      return this.prisma.category.findMany({
+        ...(whereClause && { where: whereClause }),
+        include: {
+          subcategories: true,
+          _count: {
+            select: {
+              products: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    }
+
+    // Con paginación
+    const pageNumber = page || 1;
+    const limitNumber = limit || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [categories, total] = await Promise.all([
+      this.prisma.category.findMany({
+        ...(whereClause && { where: whereClause }),
+        include: {
+          subcategories: true,
+          _count: {
+            select: {
+              products: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limitNumber,
+      }),
+      this.prisma.category.count({
+        ...(whereClause && { where: whereClause }),
+      }),
+    ]);
+
+    return createPaginationResponse(categories, total, pageNumber, limitNumber);
   }
 
   async findOne(id: string) {
@@ -60,7 +117,6 @@ export class CategoriesService {
       throw new NotFoundException(`Categoría con id ${id} no encontrada`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return category;
   }
 
@@ -78,7 +134,6 @@ export class CategoriesService {
     }
 
     // category.id is guaranteed to be non-null after findOne check
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.category.update({
       where: { id },
       data: updateCategoryDto,
@@ -89,7 +144,6 @@ export class CategoriesService {
     await this.findOne(id);
 
     // id is guaranteed to be valid after findOne check
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.prisma.category.delete({
       where: { id },
     });
