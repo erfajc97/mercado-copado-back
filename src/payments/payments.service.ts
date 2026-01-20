@@ -464,9 +464,6 @@ export class PaymentsService {
         // La orden ya debería existir (se creó cuando se inició el pago)
         // Solo actualizar su estado a paid_pending_review
         if (!transaction.orderId) {
-          console.error(
-            `[updatePaymentStatus] Transacción ${clientTransactionId} no tiene orderId asociado. Esto no debería pasar.`,
-          );
           throw new BadRequestException(
             'La transacción no tiene una orden asociada. Por favor, contacta al soporte.',
           );
@@ -486,9 +483,6 @@ export class PaymentsService {
         });
 
         if (!order) {
-          console.error(
-            `[updatePaymentStatus] Error: Orden ${transaction.orderId} no encontrada para transacción ${clientTransactionId}`,
-          );
           throw new NotFoundException(
             `La orden asociada a esta transacción no fue encontrada`,
           );
@@ -502,29 +496,15 @@ export class PaymentsService {
         if (transaction.paymentProvider === PaymentProvider.PAYPHONE) {
           // Tanto link como teléfono deben resultar en processing
           newOrderStatus = OrderStatus.processing;
-          const payphoneData = transaction.payphoneData as
-            | { paymentId?: string }
-            | null
-            | undefined;
-          const hasPaymentId = payphoneData?.paymentId;
-          const paymentType = hasPaymentId ? 'link' : 'teléfono';
-          console.log(
-            `[updatePaymentStatus] Actualizando estado de orden ${order.id} de ${order.status} a processing (pago Payphone por ${paymentType} confirmado)`,
-          );
+          newOrderStatus = OrderStatus.processing;
         } else if (
           transaction.paymentProvider === PaymentProvider.CASH_DEPOSIT
         ) {
           // Depósitos en efectivo se marcan como paid_pending_review para revisión manual
           newOrderStatus = OrderStatus.paid_pending_review;
-          console.log(
-            `[updatePaymentStatus] Actualizando estado de orden ${order.id} de ${order.status} a paid_pending_review (depósito en efectivo - requiere revisión manual)`,
-          );
         } else {
           // Para otros métodos de pago, usar paid_pending_review
           newOrderStatus = OrderStatus.paid_pending_review;
-          console.log(
-            `[updatePaymentStatus] Actualizando estado de orden ${order.id} de ${order.status} a paid_pending_review`,
-          );
         }
 
         await this.ordersService.updateStatus(orderId, newOrderStatus);
@@ -551,13 +531,9 @@ export class PaymentsService {
             },
           });
         } catch (error) {
-          console.error('Error sending order confirmation email:', error);
+          // Error al enviar email, pero no fallar la actualización de estado
         }
       } catch (error) {
-        console.error(
-          `[updatePaymentStatus] Error al actualizar orden para transacción ${clientTransactionId}:`,
-          error,
-        );
         // Re-lanzar el error para que el frontend pueda manejarlo
         throw error;
       }
@@ -625,35 +601,15 @@ export class PaymentsService {
       // Verificar si la transacción tiene una orden asociada
       // Si no tiene orden, crearla usando createOrderFromPaymentTransaction
       if (!updatedTransaction.orderId) {
-        console.log(
-          `[processPhonePayment] Transacción ${clientTransactionId} no tiene orderId. Creando orden...`,
-        );
         try {
-          const order = await this.createOrderFromPaymentTransaction(
+          await this.createOrderFromPaymentTransaction(
             clientTransactionId,
             OrderStatus.pending,
           );
-          if (order) {
-            console.log(
-              `[processPhonePayment] Orden ${order.id} creada exitosamente para transacción ${clientTransactionId}`,
-            );
-          } else {
-            console.warn(
-              `[processPhonePayment] No se pudo crear la orden para transacción ${clientTransactionId}. La orden puede ser null.`,
-            );
-          }
         } catch (error) {
-          console.error(
-            `[processPhonePayment] Error al crear orden para transacción ${clientTransactionId}:`,
-            error,
-          );
-          // No lanzar el error aquí, solo loguearlo, porque el pago ya fue enviado a Payphone
+          // No lanzar el error aquí, porque el pago ya fue enviado a Payphone
           // La orden se puede crear más tarde cuando se confirme el pago
         }
-      } else {
-        console.log(
-          `[processPhonePayment] Transacción ${clientTransactionId} ya tiene orden ${updatedTransaction.orderId} asociada`,
-        );
       }
 
       return {
@@ -683,35 +639,15 @@ export class PaymentsService {
       // Verificar si la transacción tiene una orden asociada
       // Si no tiene orden, crearla usando createOrderFromPaymentTransaction
       if (!updatedTransaction.orderId) {
-        console.log(
-          `[processPhonePayment] Transacción ${clientTransactionId} no tiene orderId. Creando orden...`,
-        );
         try {
-          const order = await this.createOrderFromPaymentTransaction(
+          await this.createOrderFromPaymentTransaction(
             clientTransactionId,
             OrderStatus.pending,
           );
-          if (order) {
-            console.log(
-              `[processPhonePayment] Orden ${order.id} creada exitosamente para transacción ${clientTransactionId}`,
-            );
-          } else {
-            console.warn(
-              `[processPhonePayment] No se pudo crear la orden para transacción ${clientTransactionId}. La orden puede ser null.`,
-            );
-          }
         } catch (error) {
-          console.error(
-            `[processPhonePayment] Error al crear orden para transacción ${clientTransactionId}:`,
-            error,
-          );
-          // No lanzar el error aquí, solo loguearlo, porque el pago ya fue enviado a Payphone
+          // No lanzar el error aquí, porque el pago ya fue enviado a Payphone
           // La orden se puede crear más tarde cuando se confirme el pago
         }
-      } else {
-        console.log(
-          `[processPhonePayment] Transacción ${clientTransactionId} ya tiene orden ${updatedTransaction.orderId} asociada`,
-        );
       }
 
       return {
@@ -720,10 +656,6 @@ export class PaymentsService {
       };
     } catch (error: unknown) {
       // Si falla la llamada a Payphone, marcar la transacción como fallida
-      console.error(
-        `[processPhonePayment] Error al procesar pago por teléfono para transacción ${clientTransactionId}:`,
-        error,
-      );
       await this.prisma.paymentTransaction.update({
         where: { clientTransactionId },
         data: {
@@ -938,6 +870,12 @@ export class PaymentsService {
     // Crear nueva transacción con nuevo clientTransactionId
     const newClientTransactionId = Math.random().toString(36).substring(2, 15);
 
+    // Validar y preparar payphoneData
+    let finalPayphoneData: runtime.InputJsonValue | undefined;
+    if (payphoneData) {
+      finalPayphoneData = payphoneData as runtime.InputJsonValue;
+    }
+
     const transaction = await this.prisma.paymentTransaction.create({
       data: {
         userId,
@@ -953,9 +891,9 @@ export class PaymentsService {
           paymentMethodId !== 'payphone-default'
             ? paymentMethodId
             : null,
-        ...(payphoneData
+        ...(finalPayphoneData
           ? {
-              payphoneData: payphoneData as runtime.InputJsonValue,
+              payphoneData: finalPayphoneData,
             }
           : {}),
       },

@@ -65,9 +65,6 @@ export class PayphoneProvider implements IPaymentProvider {
     };
 
     try {
-      console.log(
-        `[PayphoneProvider.processPayment] Generando link de pago para transacción ${clientTransactionId}`,
-      );
       const response = await firstValueFrom(
         this.httpService.post<{
           paymentId: string;
@@ -85,28 +82,17 @@ export class PayphoneProvider implements IPaymentProvider {
       );
 
       if (!response.data || !response.data.paymentId || !response.data.payWithCard) {
-        console.error(
-          `[PayphoneProvider.processPayment] Respuesta inválida de Payphone para transacción ${clientTransactionId}:`,
-          response.data,
-        );
         throw new Error(
           'La respuesta de Payphone no contiene los datos esperados. Por favor, intenta nuevamente.',
         );
       }
 
-      console.log(
-        `[PayphoneProvider.processPayment] Link de pago generado exitosamente para transacción ${clientTransactionId}`,
-      );
       return {
         paymentId: response.data.paymentId,
         redirectUrl: response.data.payWithCard,
         paymentData: response.data,
       };
     } catch (error: unknown) {
-      console.error(
-        `[PayphoneProvider.processPayment] Error al generar link de pago para transacción ${clientTransactionId}:`,
-        error,
-      );
       // Mejorar el manejo de errores para obtener más información de Payphone
       if (error instanceof Error) {
         // Si es un error de Axios, intentar obtener más detalles
@@ -124,9 +110,6 @@ export class PayphoneProvider implements IPaymentProvider {
 
         // Detectar errores de autenticación
         if (axiosError.response?.status === 401) {
-          console.error(
-            '[PayphoneProvider.processPayment] Error de autenticación con Payphone. Verifica que TOKEN_PAYPHONE_LINK esté configurado correctamente.',
-          );
           throw new Error(
             'Error de autenticación con Payphone. Por favor, contacta al soporte técnico.',
           );
@@ -253,9 +236,6 @@ export class PayphoneProvider implements IPaymentProvider {
     };
 
     try {
-      console.log(
-        `[PayphoneProvider.processPhonePayment] Procesando pago por teléfono para transacción ${clientTransactionId}`,
-      );
       const response = await firstValueFrom(
         this.httpService.post<unknown>(
           'https://pay.payphonetodoesposible.com/api/Sale',
@@ -270,23 +250,13 @@ export class PayphoneProvider implements IPaymentProvider {
       );
 
       if (!response.data) {
-        console.error(
-          `[PayphoneProvider.processPhonePayment] Respuesta vacía de Payphone para transacción ${clientTransactionId}`,
-        );
         throw new Error(
           'La respuesta de Payphone está vacía. Por favor, intenta nuevamente.',
         );
       }
 
-      console.log(
-        `[PayphoneProvider.processPhonePayment] Pago por teléfono procesado exitosamente para transacción ${clientTransactionId}`,
-      );
       return response.data as Record<string, unknown>;
     } catch (error: unknown) {
-      console.error(
-        `[PayphoneProvider.processPhonePayment] Error al procesar pago por teléfono para transacción ${clientTransactionId}:`,
-        error,
-      );
       // Mejorar el manejo de errores para obtener más información de Payphone
       if (error instanceof Error) {
         // Si es un error de Axios, intentar obtener más detalles
@@ -303,9 +273,6 @@ export class PayphoneProvider implements IPaymentProvider {
         };
 
         if (axiosError.response?.status === 401) {
-          console.error(
-            '[PayphoneProvider.processPhonePayment] Error de autenticación con Payphone. Verifica que TOKEN_PAYPHONE esté configurado correctamente.',
-          );
           throw new Error(
             'Error de autenticación con Payphone. Verifica que TOKEN_PAYPHONE esté configurado correctamente en el archivo .env del backend.',
           );

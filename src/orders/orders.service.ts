@@ -424,7 +424,6 @@ export class OrdersService {
           total: order.total,
         };
       } catch (error: unknown) {
-        console.error('Error al generar link de pago:', error);
         const errorMessage =
           error instanceof Error
             ? error.message
