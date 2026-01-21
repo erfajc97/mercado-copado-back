@@ -410,6 +410,22 @@ export class PaymentTransactionService {
       },
     });
 
+    // Para Mercado Pago, generar la preferencia con el init_point
+    if (paymentProvider === PaymentProvider.MERCADOPAGO) {
+      const result = await this.mercadopagoProvider.processPayment(
+        Number(order.total),
+        newClientTransactionId,
+        { reference: 'Compra en Mercado Copado' },
+      );
+
+      return {
+        transaction,
+        preferenceId: result.paymentId,
+        initPoint:
+          (result.paymentData?.initPoint as string) || result.redirectUrl,
+      };
+    }
+
     return transaction;
   }
 
