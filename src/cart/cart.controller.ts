@@ -22,7 +22,6 @@ export class CartController {
 
   @Get()
   findAll(@CurrentUser() user: LoggedInUserData) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.cartService.findAll(user.id);
   }
 
@@ -50,7 +49,6 @@ export class CartController {
 
   @Delete()
   clearCart(@CurrentUser() user: LoggedInUserData) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.cartService.clearCart(user.id);
   }
 }

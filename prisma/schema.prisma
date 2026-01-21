@@ -16,7 +16,6 @@ enum UserRole {
 enum OrderStatus {
   pending
   processing
-  completed
   cancelled
   created
   shipping

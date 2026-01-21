@@ -44,7 +44,6 @@ export class ProductsController {
   ) {
     const pageNumber = page ? parseInt(page, 10) : undefined;
     const limitNumber = limit ? parseInt(limit, 10) : undefined;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.productsService.findAll(
       categoryId,
       subcategoryId,

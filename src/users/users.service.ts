@@ -287,6 +287,7 @@ export class UsersService {
           phoneNumber: true,
           country: true,
           documentId: true,
+          isVerified: true,
           createdAt: true,
           orders: {
             select: {
@@ -342,6 +343,7 @@ export class UsersService {
         phoneNumber: user.phoneNumber,
         country: user.country,
         documentId: user.documentId,
+        isVerified: user.isVerified,
         totalOrders,
         totalSpent,
         createdAt: user.createdAt,

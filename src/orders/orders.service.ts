@@ -8,12 +8,14 @@ import { CreateOrderDto } from './dto/create-order.dto.js';
 import { OrderStatus } from '../generated/enums.js';
 import { PayphoneProvider } from '../payments/providers/payphone.provider.js';
 import { createPaginationResponse } from '../common/helpers/pagination.helper.js';
+import { OrderNotificationService } from './services/order-notification.service.js';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private payphoneProvider: PayphoneProvider,
+    private orderNotificationService: OrderNotificationService,
   ) {}
 
   async create(userId: string, createOrderDto: CreateOrderDto) {
@@ -231,18 +233,38 @@ export class OrdersService {
       where.userId = userId;
     }
 
-    const order = await this.prisma.order.findFirst({ where });
+    const order = await this.prisma.order.findFirst({
+      where,
+      include: {
+        user: {
+          select: {
+            email: true,
+            firstName: true,
+          },
+        },
+      },
+    });
 
     if (!order) {
       throw new NotFoundException('Orden no encontrada');
     }
 
+    const previousStatus = order.status;
+
     // order.id is guaranteed to be non-null after findFirst check
-    return this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id },
       data: { status },
       include: {
         address: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
         items: {
           include: {
             product: true,
@@ -250,6 +272,17 @@ export class OrdersService {
         },
       },
     });
+
+    // Enviar notificación por email si el estado cambió
+    if (previousStatus !== status) {
+      await this.orderNotificationService.sendOrderStatusEmail(
+        updatedOrder,
+        status,
+        previousStatus,
+      );
+    }
+
+    return updatedOrder;
   }
 
   async createFromPaymentTransaction(

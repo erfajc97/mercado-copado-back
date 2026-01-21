@@ -28,7 +28,6 @@ export class SubcategoriesController {
   @Get()
   @Public()
   findAll(@Query('categoryId') categoryId?: string) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.subcategoriesService.findAll(categoryId);
   }
 

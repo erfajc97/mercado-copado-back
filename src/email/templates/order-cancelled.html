@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orden Confirmada - Mercado Copado</title>
+  <title>Orden Cancelada - Mercado Copado</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
@@ -21,8 +21,8 @@
           <!-- Icon -->
           <tr>
             <td align="center" style="padding: 30px 30px 0 30px;">
-              <div style="width: 80px; height: 80px; background-color: #E8F5E9; border-radius: 50%; display: inline-block; line-height: 80px;">
-                <span style="font-size: 40px;">🎉</span>
+              <div style="width: 80px; height: 80px; background-color: #FFEBEE; border-radius: 50%; display: inline-block; line-height: 80px;">
+                <span style="font-size: 40px;">❌</span>
               </div>
             </td>
           </tr>
@@ -30,59 +30,52 @@
           <!-- Content -->
           <tr>
             <td style="padding: 20px 30px;">
-              <h2 style="margin: 0 0 20px 0; color: #4CAF50; font-size: 24px; text-align: center;">¡Orden Confirmada!</h2>
+              <h2 style="margin: 0 0 20px 0; color: #f44336; font-size: 24px; text-align: center;">Tu orden fue cancelada</h2>
               <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
                 Hola <strong>{{name}}</strong>,
               </p>
               <p style="margin: 0 0 20px 0; color: #555555; font-size: 16px; line-height: 1.6;">
-                Tu pago ha sido procesado exitosamente y tu orden está confirmada. Pronto comenzaremos a preparar tu pedido.
+                Lamentamos informarte que tu orden ha sido cancelada. Si realizaste algún pago, será reembolsado a tu método de pago original.
               </p>
               
               <!-- Order Details Box -->
-              <div style="background-color: #E8F5E9; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+              <div style="background-color: #FFEBEE; border-radius: 8px; padding: 20px; margin: 20px 0; border-left: 4px solid #f44336;">
                 <p style="margin: 0 0 10px 0; color: #333333; font-size: 14px;">
                   <strong>Orden:</strong> #{{orderId}}
                 </p>
                 <p style="margin: 0 0 10px 0; color: #333333; font-size: 14px;">
                   <strong>Total:</strong> ${{total}}
                 </p>
-                <p style="margin: 0; color: #4CAF50; font-size: 14px; font-weight: bold;">
-                  Estado: Confirmada
+                <p style="margin: 0; color: #f44336; font-size: 14px; font-weight: bold;">
+                  Estado: Cancelado
                 </p>
               </div>
               
               <!-- Items -->
-              <h3 style="margin: 20px 0 10px 0; color: #333333; font-size: 16px;">Productos comprados:</h3>
+              <h3 style="margin: 20px 0 10px 0; color: #333333; font-size: 16px;">Productos de la orden:</h3>
               <div style="background-color: #fafafa; border-radius: 8px; padding: 15px; font-family: monospace; font-size: 13px; color: #555555; white-space: pre-line;">{{items}}</div>
               
-              <!-- What's Next -->
-              <div style="background-color: #FFF8E1; border-radius: 8px; padding: 20px; margin-top: 20px;">
-                <h4 style="margin: 0 0 10px 0; color: #8B5A2B; font-size: 14px; font-weight: bold;">
-                  ¿Qué sigue?
-                </h4>
-                <ul style="margin: 0; padding-left: 20px; color: #666666; font-size: 14px;">
-                  <li style="margin-bottom: 5px;">Prepararemos tu pedido con cuidado</li>
-                  <li style="margin-bottom: 5px;">Te notificaremos cuando esté listo para envío</li>
-                  <li>Recibirás otra notificación cuando esté en camino</li>
-                </ul>
+              <!-- Help Box -->
+              <div style="background-color: #E3F2FD; border-radius: 8px; padding: 20px; margin-top: 20px;">
+                <p style="margin: 0 0 10px 0; color: #1976D2; font-size: 14px; font-weight: bold;">
+                  ¿Necesitas ayuda?
+                </p>
+                <p style="margin: 0; color: #555555; font-size: 14px;">
+                  Si tienes preguntas sobre la cancelación o el reembolso, no dudes en contactarnos.
+                </p>
               </div>
               
               <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
-                <a href="{{orderUrl}}" style="display: inline-block; background-color: #4CAF50; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: bold;">Ver Mi Orden</a>
+                <a href="{{frontendUrl}}" style="display: inline-block; background-color: #6B4423; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: bold;">Volver a la Tienda</a>
               </div>
-              
-              <!-- Thank You -->
-              <p style="margin: 20px 0 0 0; color: #8B5A2B; font-size: 16px; text-align: center; font-weight: bold;">
-                ¡Gracias por comprar en Mercado Copado!
-              </p>
             </td>
           </tr>
           
           <!-- Footer -->
           <tr>
             <td style="background-color: #f8f9fa; padding: 20px 30px; border-radius: 0 0 12px 12px; text-align: center;">
-              <p style="margin: 0 0 10px 0; color: #888888; font-size: 14px;">¿Tienes preguntas? Contáctanos</p>
+              <p style="margin: 0 0 10px 0; color: #888888; font-size: 14px;">Lamentamos los inconvenientes</p>
               <p style="margin: 0; color: #888888; font-size: 12px;">© 2026 Mercado Copado. Todos los derechos reservados.</p>
             </td>
           </tr>

@@ -45,7 +45,7 @@ export class CreateProductDto {
     if (typeof value === 'string') {
       return value === 'true';
     }
-    return value;
+    return value as boolean;
   })
   isActive?: boolean;
 }

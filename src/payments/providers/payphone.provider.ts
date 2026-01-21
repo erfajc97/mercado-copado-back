@@ -81,7 +81,11 @@ export class PayphoneProvider implements IPaymentProvider {
         ),
       );
 
-      if (!response.data || !response.data.paymentId || !response.data.payWithCard) {
+      if (
+        !response.data ||
+        !response.data.paymentId ||
+        !response.data.payWithCard
+      ) {
         throw new Error(
           'La respuesta de Payphone no contiene los datos esperados. Por favor, intenta nuevamente.',
         );

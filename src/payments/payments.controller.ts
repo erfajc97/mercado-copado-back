@@ -5,12 +5,14 @@ import {
   Delete,
   Body,
   Param,
+  Req,
   UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request } from 'express';
 import { PaymentsService } from './payments.service.js';
 import { CreatePaymentTransactionDto } from './dto/create-payment-transaction.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
@@ -84,6 +86,22 @@ export class PaymentsController {
       user.id,
       transactionId,
     );
+  }
+
+  @Post('webhooks/mercadopago')
+  @Public()
+  async mercadopagoWebhook(@Req() req: Request) {
+    const dataId = String(req.query?.['data.id'] ?? req.body?.data?.id ?? '');
+    const type = req.query?.type;
+    if (!dataId || type !== 'payment') {
+      return { received: true };
+    }
+    try {
+      await this.paymentsService.handleMercadoPagoWebhook(dataId);
+    } catch {
+      // Acusar recibo con 200 aunque falle el procesamiento para que MP no reintente en bucle
+    }
+    return { received: true };
   }
 
   @Post('update-status')
@@ -168,6 +186,34 @@ export class PaymentsController {
     );
   }
 
+  @Post('crypto-deposit')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('depositImage'))
+  async processCryptoDeposit(
+    @CurrentUser() user: LoggedInUserData,
+    @Body()
+    body: {
+      addressId: string;
+      clientTransactionId: string;
+      orderId?: string; // Para retry de pagos en órdenes existentes
+    },
+    @UploadedFile() depositImageFile: Express.Multer.File,
+  ) {
+    if (!depositImageFile) {
+      throw new BadRequestException(
+        'La imagen del comprobante de transferencia crypto es requerida',
+      );
+    }
+
+    return this.paymentsService.processCryptoDeposit(
+      user.id,
+      body.addressId,
+      body.clientTransactionId,
+      depositImageFile,
+      body.orderId, // Pasar orderId si existe
+    );
+  }
+
   @Post('regenerate-transaction')
   @UseGuards(JwtAuthGuard)
   async regenerateTransaction(
@@ -201,6 +247,30 @@ export class PaymentsController {
     return await this.paymentsService.verifyMultipleTransactions(
       body.clientTransactionIds,
       user.id,
+    );
+  }
+
+  /**
+   * Verifica el estado de un pago de Mercado Pago y actualiza la transacción/orden.
+   * Se usa cuando el usuario regresa desde la redirección de MP.
+   */
+  @Post('verify-mercadopago-payment')
+  @Public()
+  async verifyMercadoPagoPayment(
+    @Body()
+    body: {
+      paymentId: string;
+      externalReference: string;
+    },
+  ) {
+    if (!body.paymentId || !body.externalReference) {
+      throw new BadRequestException(
+        'paymentId y externalReference son requeridos',
+      );
+    }
+    return this.paymentsService.verifyAndUpdateMercadoPagoPayment(
+      body.paymentId,
+      body.externalReference,
     );
   }
 }

@@ -346,7 +346,8 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    const product = await this.findOne(id);
+    // Verificar que el producto existe (lanza NotFoundException si no)
+    await this.findOne(id);
 
     // Verificar si el producto tiene órdenes relacionadas
     const orderItemsCount = await this.prisma.orderItem.count({

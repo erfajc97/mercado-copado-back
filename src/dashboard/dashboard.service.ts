@@ -9,12 +9,12 @@ export class DashboardService {
   async getStats() {
     // Obtener estadísticas de órdenes
     const totalOrders = await this.prisma.order.count();
-    const completedOrders = await this.prisma.order.findMany({
-      where: { status: OrderStatus.completed },
+    const deliveredOrders = await this.prisma.order.findMany({
+      where: { status: OrderStatus.delivered },
     });
 
-    // Calcular ventas totales (suma de todas las órdenes completadas)
-    const totalSales = completedOrders.reduce(
+    // Calcular ventas totales (suma de todas las órdenes entregadas)
+    const totalSales = deliveredOrders.reduce(
       (sum, order) => sum + Number(order.total),
       0,
     );
@@ -39,13 +39,13 @@ export class DashboardService {
     });
 
     // Ingresos por mes (últimos 12 meses)
-    // Obtener todas las órdenes completadas de los últimos 12 meses
+    // Obtener todas las órdenes entregadas de los últimos 12 meses
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
     const ordersLast12Months = await this.prisma.order.findMany({
       where: {
-        status: OrderStatus.completed,
+        status: OrderStatus.delivered,
         createdAt: { gte: twelveMonthsAgo },
       },
       select: {
@@ -96,47 +96,47 @@ export class DashboardService {
       where: { createdAt: { gte: startOfYear } },
     });
 
-    // Calcular ingresos diarios (solo órdenes completadas de hoy)
-    const completedOrdersToday = await this.prisma.order.findMany({
+    // Calcular ingresos diarios (solo órdenes entregadas de hoy)
+    const deliveredOrdersToday = await this.prisma.order.findMany({
       where: {
-        status: OrderStatus.completed,
+        status: OrderStatus.delivered,
         createdAt: { gte: startOfDay },
       },
       select: {
         total: true,
       },
     });
-    const revenueToday = completedOrdersToday.reduce(
+    const revenueToday = deliveredOrdersToday.reduce(
       (sum, order) => sum + Number(order.total),
       0,
     );
 
-    // Calcular ingresos mensuales (solo órdenes completadas de este mes)
-    const completedOrdersThisMonth = await this.prisma.order.findMany({
+    // Calcular ingresos mensuales (solo órdenes entregadas de este mes)
+    const deliveredOrdersThisMonth = await this.prisma.order.findMany({
       where: {
-        status: OrderStatus.completed,
+        status: OrderStatus.delivered,
         createdAt: { gte: startOfMonth },
       },
       select: {
         total: true,
       },
     });
-    const revenueThisMonth = completedOrdersThisMonth.reduce(
+    const revenueThisMonth = deliveredOrdersThisMonth.reduce(
       (sum, order) => sum + Number(order.total),
       0,
     );
 
-    // Calcular ingresos anuales (solo órdenes completadas de este año)
-    const completedOrdersThisYear = await this.prisma.order.findMany({
+    // Calcular ingresos anuales (solo órdenes entregadas de este año)
+    const deliveredOrdersThisYear = await this.prisma.order.findMany({
       where: {
-        status: OrderStatus.completed,
+        status: OrderStatus.delivered,
         createdAt: { gte: startOfYear },
       },
       select: {
         total: true,
       },
     });
-    const revenueThisYear = completedOrdersThisYear.reduce(
+    const revenueThisYear = deliveredOrdersThisYear.reduce(
       (sum, order) => sum + Number(order.total),
       0,
     );
