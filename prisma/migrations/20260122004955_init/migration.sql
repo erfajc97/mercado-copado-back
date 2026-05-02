@@ -2,10 +2,13 @@
 CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('pending', 'processing', 'completed', 'cancelled');
+CREATE TYPE "OrderStatus" AS ENUM ('pending', 'processing', 'cancelled', 'created', 'shipping', 'delivered', 'paid_pending_review');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'completed', 'failed');
+
+-- CreateEnum
+CREATE TYPE "PaymentProvider" AS ENUM ('PAYPHONE', 'MERCADOPAGO', 'CRYPTO', 'CASH_DEPOSIT');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -14,6 +17,9 @@ CREATE TABLE "User" (
     "password" TEXT,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT,
+    "phoneNumber" TEXT,
+    "country" TEXT,
+    "documentId" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
     "googleId" TEXT,
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
@@ -57,6 +63,8 @@ CREATE TABLE "Product" (
     "description" TEXT NOT NULL,
     "price" DECIMAL(10,2) NOT NULL,
     "discount" DECIMAL(5,2) NOT NULL DEFAULT 0,
+    "country" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "categoryId" TEXT NOT NULL,
     "subcategoryId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -85,6 +93,7 @@ CREATE TABLE "Address" (
     "state" TEXT NOT NULL,
     "zipCode" TEXT NOT NULL,
     "country" TEXT NOT NULL,
+    "reference" TEXT,
     "isDefault" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -111,6 +120,7 @@ CREATE TABLE "Order" (
     "addressId" TEXT NOT NULL,
     "total" DECIMAL(10,2) NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'pending',
+    "depositImageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -132,11 +142,14 @@ CREATE TABLE "OrderItem" (
 -- CreateTable
 CREATE TABLE "PaymentTransaction" (
     "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
+    "orderId" TEXT,
     "userId" TEXT NOT NULL,
     "clientTransactionId" TEXT NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "status" "PaymentStatus" NOT NULL DEFAULT 'pending',
+    "paymentProvider" "PaymentProvider" NOT NULL DEFAULT 'PAYPHONE',
+    "addressId" TEXT,
+    "paymentMethodId" TEXT,
     "payphoneData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -144,8 +157,27 @@ CREATE TABLE "PaymentTransaction" (
     CONSTRAINT "PaymentTransaction_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "PaymentMethod" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "gatewayToken" TEXT NOT NULL,
+    "cardBrand" TEXT NOT NULL,
+    "last4Digits" TEXT NOT NULL,
+    "expirationMonth" INTEGER NOT NULL,
+    "expirationYear" INTEGER NOT NULL,
+    "isDefault" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PaymentMethod_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_documentId_key" ON "User"("documentId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_googleId_key" ON "User"("googleId");
@@ -194,3 +226,6 @@ ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_orderId_fkey
 
 -- AddForeignKey
 ALTER TABLE "PaymentTransaction" ADD CONSTRAINT "PaymentTransaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PaymentMethod" ADD CONSTRAINT "PaymentMethod_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
